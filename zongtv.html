@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TALHA HUB TV</title>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body {
+  margin:0;
+  font-family:sans-serif;
+  background:linear-gradient(135deg,#6366f1,#ec4899);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+h1 {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:#fff;
+  margin:5px 0;
+  font-size:1.8rem;
+  font-weight:bold;
+}
+
+/* Back Button */
+#backBtn{
+  position:static;
+  width:40px;
+  height:40px;
+  background:rgba(0,0,0,0.6);
+  color:white;
+  border:none;
+  border-radius:6px;
+  font-size:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+#backBtn:hover{
+  background:rgba(255,255,255,0.3);
+}
+
+/* Player */
+.player-box {
+  width:100%;
+  max-width:900px;
+  aspect-ratio:16/9;
+  background:black;
+  border-radius:20px;
+  overflow:hidden;
+  position:sticky;
+  top:5px;
+  z-index:50;
+  box-shadow:0 10px 25px rgba(0,0,0,0.6);
+  margin-bottom:5px;
+}
+
+/* Loader */
+#loader {
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,0.6);
+  z-index:100;
+  visibility:hidden;
+}
+.loader-spin {
+  border:4px solid rgba(255,255,255,0.3);
+  border-top:4px solid #9333ea;
+  border-radius:50%;
+  width:50px;
+  height:50px;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin {
+  100% {transform:rotate(360deg);}
+}
+
+/* Controls */
+.controls{
+  position:absolute;
+  bottom:40px; left:0; right:0;
+  display:flex; justify-content:center; align-items:center;
+  opacity:1; transition:opacity 0.4s;
+  flex-wrap:wrap; z-index:20;
+}
+.controls.hidden{opacity:0; pointer-events:none;}
+.control-btn{
+  background:rgba(0,0,0,0.6); color:white; width:42px; height:42px;
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+  margin:0 6px; cursor:pointer; transition:0.3s; font-size:18px;
+}
+.control-btn:hover{background:rgba(255,255,255,0.3);}
+
+#channelName{
+  position:absolute; top:2px; left:2px; background:rgba(0,0,0,0.6);
+  color:white; padding:3px 8px; border-radius:6px; font-size:14px; z-index:25;
+}
+
+/* Quality menu */
+#qualityMenu{
+  position:absolute;
+  bottom:80px;
+  right:10px;
+  background:rgba(0,0,0,0.85);
+  border-radius:8px;
+  padding:6px;
+  display:none;
+  z-index:30;
+}
+#qualityMenu button{
+  display:block; width:100%; padding:4px 10px; color:white;
+  background:transparent; border:none; text-align:left; cursor:pointer;
+  border-radius:6px; margin-bottom:4px; box-shadow:0 0 5px rgba(0,0,0,0.5);
+}
+#qualityMenu button:hover{background:rgba(255,255,255,0.2);}
+#qualityMenu button.active-quality{
+  background:#9333ea; color:white; box-shadow:0 0 10px #9333ea;
+}
+
+/* Progress bar */
+#progressContainer{
+  position:absolute; bottom:10px; left:10px; right:10px;
+  height:6px; background: rgba(255,255,255,0.3); border-radius:3px;
+  cursor:pointer; z-index:20;
+}
+#progressBar{width:0%; height:100%; background:#9333ea; border-radius:3px;}
+#progressHandle{
+  position:absolute; top:-4px; width:14px; height:14px; background:#fff;
+  border-radius:50%; transform:translateX(-50%); cursor:pointer;
+}
+#timeDisplay{
+  position:absolute; bottom:18px; right:15px; color:white;
+  font-size:12px; background: rgba(0,0,0,0.5); padding:2px 5px; border-radius:4px; z-index:20;
+}
+
+/* Channels Grid */
+#channelGrid{
+  display:grid; grid-template-columns:repeat(6,1fr); gap:8px;
+  padding:5px; max-width:900px; width:100%;
+  overflow-y:auto;
+  margin-top:0px;
+}
+.channel-logo {
+  width:65px;
+  height:65px;
+  border-radius:50%;       /* Circle shape */
+  object-fit:cover;
+  cursor:pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+  border:2px solid transparent;
+  padding:5px;             /* Circle button padding */
+  background: rgba(0,0,0,0.2); /* Light background for button feel */
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.channel-logo:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 15px #9333ea;
+  background: rgba(0,0,0,0.35);
+}
+.active-channel {
+  border:2px solid #9333ea;
+  box-shadow:0 0 20px #9333ea;
+  background: rgba(0,0,0,0.35);
+}
+</style>
+</head>
+<body>
+
+<h1>
+  <button id="backBtn" onclick="goBack()">←</button>
+  📺 TALHA HUB TV
+</h1>
+
+<div class="player-box" id="playerBox" onclick="toggleControls()">
+  <video id="videoPlayer" class="w-full h-full" autoplay poster="images/talhatv.jpg">
+  </video>
+
+  <div id="loader">
+    <div class="loader-spin"></div>
+  </div>
+
+  <div id="controls" class="controls">
+    <button onclick="prevChannel()" class="control-btn">⏮</button>
+    <button id="playBtn" onclick="togglePlay()" class="control-btn">▶</button>
+    <button id="muteBtn" onclick="toggleMute()" class="control-btn">🔊</button>
+    <button onclick="nextChannel()" class="control-btn">⏭</button>
+    <button onclick="toggleFullScreen()" class="control-btn">⛶</button>
+    <button onclick="toggleSizeMode()" class="control-btn">🖼</button>
+    <button onclick="toggleQualityMenu()" class="control-btn">⚙</button>
+  </div>
+
+  <div id="qualityMenu"></div>
+  <div id="progressContainer" onclick="seekVideo(event)">
+    <div id="progressBar"></div>
+    <div id="progressHandle"></div>
+  </div>
+  <div id="timeDisplay">00:00 / 00:00</div>
+  <div id="channelName">Select a channel</div>
+</div>
+
+<div id="channelGrid">
+
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4atGM34rXtNQzx2wCnQQVzGSjU805qIOdFw&usqp=CAU" 
+     onclick="playChannel(this,'Saudi Quran','https://vodzong.mjunoon.tv:8087/streamtest/SaudiQuran-142/playlist.m3u8')" 
+     alt="Saudi Quran" class="channel-logo">
+
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGupfsMkkP5X3iP6XZx6yi2LSzq8_6TIOC-w&usqp=CAU" 
+     onclick="playChannel(this,'Saudi Sunnah','https://vodzong.mjunoon.tv:8087/streamtest/SaudiSunnah-141/live/141M/chunks.m3u8')" 
+     alt="Saudi Sunnah" class="channel-logo">
+
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRuLdTFn4TdP5-rF7YyPXTvOKguRsWJ0q0-cEDZUJ1gKGIl85TEpTiYSx0&s=10" 
+     onclick="playChannel(this,'Madani Tv','https://vodzong.mjunoon.tv:8087/streamtest/Madni-121/playlist.m3u8')" 
+     alt="Madani Tv" class="channel-logo">
+
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqsvRHu6ZhAQdM0FE5MRF4Goto2-mcA6K4sw&usqp=CAU" 
+     onclick="playChannel(this,'PTV Home','https://vodzong.mjunoon.tv:8087/streamtest/ptv-home-174/playlist.m3u8')" 
+     alt="PTV Home" class="channel-logo">
+
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQIKXUbh96lR2jrQ90lzfteBQuVL8TROFk0w&usqp=CAU" 
+     onclick="playChannel(this,'Bol TV','https://vodzong.mjunoon.tv:8087/streamtest/bolnent-159-4/playlist.m3u8')" 
+     alt="Bol TV" class="channel-logo">
+
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgK3r8pJhDdYfdu-8lGclYbvW6W4wB9lNqF-1MvwY05aPkBrB_1zigQHA&s=10" 
+     onclick="playChannel(this,'Bol News','https://vodzong.mjunoon.tv:8087/streamtest/bolnews-159-3/playlist.m3u8')" 
+     alt="Bol News" class="channel-logo">
+
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwagVGRGWczQgdzNC-RdEl1t0eF_C8_yzh-o-9WlBh7yfFR6ovB8AIKi61&s=10" 
+     onclick="playChannel(this,'Express News','https://vodzong.mjunoon.tv:8087/streamtest/ExpressNews-155/playlist.m3u8')" 
+     alt="Express News" class="channel-logo">
+
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCfJKkUhCHVllOSPBVjwCFpPn9b-P_of0kjA&usqp=CAU" 
+     onclick="playChannel(this,'Express Ent','https://vodzong.mjunoon.tv:8087/streamtest/EXP-ENT-159-1/playlist.m3u8')" 
+     alt="Express Ent" class="channel-logo">
+
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnWayKJ8devGcnrbcnfboF1RETCKoWr2aFjP-1W8iw-1p4TlYmZ6bQwnlG&s=10" 
+     onclick="playChannel(this,'Jalwa','https://vodzong.mjunoon.tv:8087/streamtest/JalwaTV-135/live/135M/chunks.m3u8')" 
+     alt="Jalwa" class="channel-logo">
+
+  <img src="http://8xm.tv/wp-content/uploads/2019/02/512X512p.png" 
+       onclick="playChannel(this,'8XM','https://vodzong.mjunoon.tv:8087/streamtest/8XM-131/playlist.m3u8')" 
+       alt="8XM" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5pVm-0Pp3hKucynZctFMIeh985gMe84RR3A&usqp=CAU" 
+       onclick="playChannel(this,'Oxygen Tv','https://vodzong.mjunoon.tv:8087/streamtest/132M/playlist.m3u8')" 
+       alt="Oxygen Tv" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJvGC860EQrod1hNmPrj9gyzoub5Qgg2M0l_12dQS18O914xV-yjE1-zHH&s=10" 
+       onclick="playChannel(this,'Geo Tv','https://vodzong.mjunoon.tv:8087/streamtest/geoent-122/playlist.m3u8')" 
+       alt="Geo Tv" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTvmQmYYa9mh7dXePN1DEBpawvKb2Jcd0Shw&usqp=CAU" 
+       onclick="playChannel(this,'Geo News','https://vodzong.mjunoon.tv:8087/streamtest/geonews-137/playlist.m3u8')" 
+       alt="Geo News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpxnA2_kHg8QgWos0GjlvCvENmdUgQhhTO1hIAwqSOE4Txfibg0oCxaq4&s=10" 
+       onclick="playChannel(this,'Urdu 1','https://vodzong.mjunoon.tv:8087/streamtest/Urdu1-158-4/playlist.m3u8')" 
+       alt="Urdu 1" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQdzutge89wiGQnXi2_-xgth7iKTQiHQS1ZzQ&usqp=CAU" 
+       onclick="playChannel(this,'A Plus','https://vodzong.mjunoon.tv:8087/streamtest/APlus-118/playlist.m3u8')" 
+       alt="A Plus" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTUKeKZG1vzTQk_qslUAkxCz_KwQo4bXdFL7d1OFpH6-XkZNk0&s" 
+       onclick="playChannel(this,'AAJ Entertainment','https://vodzong.mjunoon.tv:8087/streamtest/AAJENT-125/playlist.m3u8')" 
+       alt="AAJ Entertainment" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTw3XifA6zKwga4pcAvvSHEi4Jx-vMLbIBfjBijrZiG1hhVwtxJES73OqXk&s=10" 
+       onclick="playChannel(this,'AAJ News','https://vodzong.mjunoon.tv:8087/streamtest/AAJNews-124/playlist.m3u8')" 
+       alt="AAJ News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGsxWjXyJ9Nxvf78Le-W1jkerBBuztBahqs6VO3g8QZPVJC_LKagkmBYU&s=10" 
+       onclick="playChannel(this,'Sindh TV','https://vodzong.mjunoon.tv:8087/streamtest/SindhTV-136-1/live/136-1M/chunks.m3u8')" 
+       alt="Sindh TV" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTElWZUWbSKUaT9_4ZMQ_6rH2n7qzcRCsmrgw&usqp=CAU" 
+       onclick="playChannel(this,'Sindh News','https://vodzong.mjunoon.tv:8087/streamtest/SindhNews-136-2/playlist.m3u8')" 
+       alt="Sindh News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1Vbtybwih6wSaFraEAU6ym_-jyUXoz9qBYA&usqp=CAU" 
+       onclick="playChannel(this,'KTN TV','https://vodzong.mjunoon.tv:8087/streamtest/KTN-149/playlist.m3u8')" 
+       alt="KTN TV" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqACj5a67chU59ADkTM8gApWbYjQjKyDzHEA&usqp=CAU" 
+       onclick="playChannel(this,'KTN News','https://vodzong.mjunoon.tv:8087/streamtest/KTNNews-151/playlist.m3u8')" 
+       alt="KTN News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7a5ORjEqgt5veU6e0ltVmk_IZuov34IVWN4DwQELwboZIEJc&s" 
+       onclick="playChannel(this,'Kashish TV','https://vodzong.mjunoon.tv:8087/streamtest/Kashish-150/playlist.m3u8')" 
+       alt="Kashish TV" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGw2NFUe2PRUaUZ5zPFexMWsJdD5XdTJhcUg&usqp=CAU" 
+       onclick="playChannel(this,'Awaz TV','https://vodzong.mjunoon.tv:8087/streamtest/AWAZ-120/playlist.m3u8')" 
+       alt="Awaz TV" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9ItuK1wSgi8G2Cluif09aNKdbxSYa5E1pYJw66W6RDjck2-KfHIlBAAM&s=10" 
+       onclick="playChannel(this,'Time News','https://vodzong.mjunoon.tv:8087/streamtest/time-news-172/playlist.m3u8')" 
+       alt="Time News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsltTCnRhJul3X7RgioroIN-fkR6G9nh7z3g&usqp=CAU" 
+       onclick="playChannel(this,'Play TV','https://vodzong.mjunoon.tv:8087/streamtest/playtv-154/playlist.m3u8')" 
+       alt="Play TV" class="channel-logo">
+
+  <img src="https://upload.wikimedia.org/wikipedia/en/c/c3/Abb_Tak_news_logo.png" 
+       onclick="playChannel(this,'AbbTak News','https://vodzong.mjunoon.tv:8087/streamtest/AbbTakNews-133/live/133H/chunks.m3u8')" 
+       alt="AbbTak News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQxegS2MnXuq9RiMdfxqW8rfqlyFKTr5HwMgg&usqp=CAU" 
+       onclick="playChannel(this,'Samaa TV','https://vodzong.mjunoon.tv:8087/streamtest/Samaa-157-3/playlist.m3u8')" 
+       alt="Samaa TV" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrs-9thVXyGDeokLLg9jJeGGRtg3P7WdWMzg&usqp=CAU" 
+       onclick="playChannel(this,'Dawn News','https://vodzong.mjunoon.tv:8087/streamtest/DawnNews-152/playlist.m3u8')" 
+       alt="Dawn News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSkYgs_Akm-8OaExLxX2Jk1Vm3VKV6zTJake-vDe3Nho7vfL1C2zHFuEDDN&s=10" 
+       onclick="playChannel(this,'Hum TV','https://vodzong.mjunoon.tv:8087/streamtest/Hum-TV-136-3/playlist.m3u8')" 
+       alt="Hum TV" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmsgdiQC-oH_neSmr9rn4Q64tmaPXjW_pCeg&usqp=CAU" 
+       onclick="playChannel(this,'Hum News','https://vodzong.mjunoon.tv:8087/streamtest/Hum-news-80/playlist.m3u8')" 
+       alt="Hum News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTk5mYNrIsFgaQacU64xg6TXvnHdDrhK_s1Tg&usqp=CAU" 
+       onclick="playChannel(this,'Dunya News','https://vodzong.mjunoon.tv:8087/streamtest/DunyaNews-113/playlist.m3u8')" 
+       alt="Dunya News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZYOj6PnXQCNoA2S1vK79MpuGOP5Y3ow4IA7kwj3yeNqdgrrz9M9l_QEA&s=10" 
+       onclick="playChannel(this,'See TV','https://vodzong.mjunoon.tv:8087/streamtest/SeeTV-156/playlist.m3u8')" 
+       alt="See TV" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfsji6pOJevIdHmug5J2ppCxB40sBaCEqfqcnNo06Xrzr-uHNvKA6BoEk&s=10" 
+       onclick="playChannel(this,'Baby TV','https://vodzong.mjunoon.tv:8087/streamtest/babytv-77/playlist.m3u8')" 
+       alt="Baby TV" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOoWEUxqSt1T1KHUwj-3S_U_TlAZ-JtR1ujQ&usqp=CAU" 
+       onclick="playChannel(this,'Champion TV','https://vodzong.mjunoon.tv:8087/streamtest/champion-177/playlist.m3u8')" 
+       alt="Champion TV" class="channel-logo">
+
+  <img src="https://i1.wp.com/tvtonight.com.au/wp-content/uploads/2013-01-01_1835.jpg?w=290&ssl=1" 
+       onclick="playChannel(this,'Movie One','https://vodzong.mjunoon.tv:8087/streamtest/movie-one-176/playlist.m3u8')" 
+       alt="Movie One" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQN4ty614iusgACZsNv19qUIaOWQfjC_svwTg&usqp=CAU" 
+       onclick="playChannel(this,'TV1','https://vodzong.mjunoon.tv:8087/streamtest/TV1-129/playlist.m3u8')" 
+       alt="TV1" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6nNDOHnQcTUrc927J8WJCKguprLBriecThA&usqp=CAU" 
+       onclick="playChannel(this,'WASEB','https://vodzong.mjunoon.tv:8087/streamtest/WASEB-130/playlist.m3u8')" 
+       alt="WASEB" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3HxB_nRvvD0KireVtBymmZD-ZScTmYwQSow&usqp=CAU" 
+       onclick="playChannel(this,'Roz News','https://vodzong.mjunoon.tv:8087/streamtest/RozNews-139/playlist.m3u')" 
+       alt="Roz News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZdvN4yiS31fNgC1fv48P-a7IXWi6MIe7yAQ&usqp=CAU" 
+       onclick="playChannel(this,'VSH News','https://vodzong.mjunoon.tv:8087/streamtest/VSHTV-122/playlist.m3u8')" 
+       alt="VSH News" class="channel-logo">
+
+  <img src="https://pbs.twimg.com/media/EwAo8HrXMAITpUb?format=jpg&name=360x360" 
+       onclick="playChannel(this,'Channel 5','https://vodzong.mjunoon.tv:8087/streamtest/Channel5-159-4/live/159-4M/chunks.m3u8')" 
+       alt="Channel 5" class="channel-logo">
+
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Deutsche_Welle_symbol_2012.svg/1200px-Deutsche_Welle_symbol_2012.svg.png" 
+       onclick="playChannel(this,'DW','https://vodzong.mjunoon.tv:8087/streamtest/DW-136-4A/playlist.m3u8')" 
+       alt="DW" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPVRFCHHW_gH-9LSOuxX2zcLYQS3xQVXuTGw&usqp=CAU" 
+       onclick="playChannel(this,'Cartoon Network','https://vodzong.mjunoon.tv:8087/streamtest/cartoon-network-87/playlist.m3u8')" 
+       alt="Cartoon Network" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTq40dDTWvE6YwjbB3LSdTapLtAbVtdRoLyiw&usqp=CAU" 
+       onclick="playChannel(this,'Aruj TV','https://vodzong.mjunoon.tv:8087/streamtest/ArujTV-117/playlist.m3u8')" 
+       alt="Aruj TV" class="channel-logo">
+
+  <img src="https://pbs.twimg.com/profile_images/973580855317708801/0AJ7v7He.jpg" 
+       onclick="playChannel(this,'A1 News','https://vodzong.mjunoon.tv:8087/streamtest/A1-184/playlist.m3u8')" 
+       alt="A1 News" class="channel-logo">
+
+  <img src="https://pbs.twimg.com/media/EwAp_IFXIAEs3i3?format=jpg&name=240x240" 
+       onclick="playChannel(this,'K21 News','https://vodzong.mjunoon.tv:8087/streamtest/K21News-116/playlist.m3u8')" 
+       alt="K21 News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9P-kqdcLO7biPX520IsodHU9A6LeqXO0F2w&usqp=CAU" 
+       onclick="playChannel(this,'24 HD','https://vodzong.mjunoon.tv:8087/streamtest/24HD-146/playlist.m3u8')" 
+       alt="24 HD" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRF_NuLRli6VMhGWfP4NpFPLWWoiCpz4aasQA&usqp=CAU" 
+       onclick="playChannel(this,'Anim Plan','https://vodzong.mjunoon.tv:8087/streamtest/anim-plan-179/live/179M/chunks.m3u8')" 
+       alt="Anim Plan" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWrOWoWUoQhKJrM-fmzeYa4FM_zgMZECXBaw&usqp=CAU" 
+       onclick="playChannel(this,'NEWS1','https://vodzong.mjunoon.tv:8087/streamtest/NEWS1-128/playlist.m3u8')" 
+       alt="NEWS1" class="channel-logo">
+
+  <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Public-News-Logo-1.jpg" 
+       onclick="playChannel(this,'Public News','https://vodzong.mjunoon.tv:8087/streamtest/public-115/playlist.m3u8')" 
+       alt="Public News" class="channel-logo">
+
+  <img src="https://upload.wikimedia.org/wikipedia/en/a/a6/Neo_News_logo.jpg" 
+       onclick="playChannel(this,'Neo News','https://vodzong.mjunoon.tv:8087/streamtest/Neo-110/playlist.m3u8')" 
+       alt="Neo News" class="channel-logo">
+
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/CNN.svg/1200px-CNN.svg.png" 
+       onclick="playChannel(this,'CNN','https://vodzong.mjunoon.tv:8087/streamtest/cnn-86/playlist.m3u8')" 
+       alt="CNN" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6dtEgQit4hjIDU8JUzhfFAhgjiXyG0Dw_Gg&usqp=CAU" 
+       onclick="playChannel(this,'Capital TV','https://vodzong.mjunoon.tv:8087/streamtest/capitaltv-111/playlist.m3u8')" 
+       alt="Capital TV" class="channel-logo">
+
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/
+
+</div>
+</body>
+</html>

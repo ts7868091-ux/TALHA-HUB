@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TALHA HUB Temp Mail</title>
+    <style>
+        /* CSS Styles for the Colorful Dark Theme UI */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #1a1a2e; /* Dark background */
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+        }
+
+        /* --- Header Section --- */
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 10px 0;
+            border-bottom: 1px solid #3d3d5c;
+        }
+
+        /* Style for the actual logo image */
+        .app-logo {
+            height: 40px; /* Adjust height as needed for your logo */
+            width: auto;
+            margin-right: 15px;
+        }
+
+        /* Fallback for broken image or if logo is not found */
+        .app-logo[src="talha_logo.png"] {
+            line-height: 40px; 
+            text-align: center;
+            font-size: 0.8em;
+            color: #b0b0d0;
+        }
+
+        .app-title {
+            font-size: 1.5em;
+            font-weight: 300;
+        }
+
+        .app-title strong {
+            font-weight: 700;
+            color: #ff6e9a; /* Bright Pink/Magenta color for TALHA HUB */
+        }
+
+        .app-subtitle {
+            font-size: 0.8em;
+            color: #b0b0d0;
+            margin-top: 5px;
+        }
+
+        /* --- Card Styles --- */
+        .card {
+            background-color: #2a2a4a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #8c8cff; /* Light purple accent */
+            margin-bottom: 15px;
+        }
+
+        /* --- Email Box --- */
+        #email-display {
+            background-color: #1a1a2e;
+            border: 1px solid #3d3d5c;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+
+        /* --- Button Styles --- */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .btn-generate {
+            background-color: #ff6e9a; /* Pink/Purple */
+            color: #ffffff;
+        }
+
+        .btn-generate:hover {
+            background-color: #ff5480;
+        }
+
+        .btn-refresh {
+            background-color: #ffcc00; /* Yellow */
+            color: #1a1a2e;
+        }
+
+        .btn-refresh:hover {
+            background-color: #e0b300;
+        }
+
+        .btn-clear {
+            background-color: #4a4a6e;
+            color: #ffffff;
+        }
+
+        .btn-clear:hover {
+            background-color: #3d3d5c;
+        }
+
+        /* --- Inbox and Message Styles --- */
+        #inbox-list {
+            list-style: none;
+            padding: 0;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .inbox-item {
+            background-color: #3d3d5c;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .inbox-item:hover {
+            background-color: #4a4a6e;
+        }
+
+        .inbox-item strong {
+            display: block;
+            font-size: 1em;
+            color: #ffcc00; /* Yellow for sender */
+        }
+
+        .inbox-item span {
+            font-size: 0.8em;
+            color: #b0b0d0;
+        }
+
+        #message-content {
+            white-space: pre-wrap; /* Preserve formatting in the message body */
+            min-height: 100px;
+            background-color: #1a1a2e;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: hidden;
+            border: 1px solid #3d3d5c;
+        }
+
+        .status {
+            font-size: 0.9em;
+            color: #b0b0d0;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="talha_logo.png" alt="Talha Logo" class="app-logo">
+            <div>
+                <div class="app-title">⚡ TEMP MAIL BY <strong>TALHA HUB</strong></div>
+                <div class="app-subtitle">Disposable temp-mail — generate, check inbox and read messages (10 minute expiry)</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <button class="btn btn-generate" onclick="generateEmail()">✨ Generate Email</button>
+
+            <div class="card-header">Your Temp Email</div>
+            <div id="email-display" title="Click to copy email">
+                --
+            </div>
+            <p class="status">Email auto-expires after 10 minutes.</p>
+
+            <button class="btn btn-refresh" onclick="checkInbox()">⬇️ Refresh Inbox</button>
+            <button class="btn btn-clear" onclick="clearEmail()">🧹 Clear Email</button>
+            <div class="status" id="status-text">Status: Idle</div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Inbox (<span id="inbox-count">0</span>)</div>
+            <ul id="inbox-list">
+                <li id="inbox-placeholder">No inbox yet. Generate an email to start.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Message</div>
+            <div id="message-content">No message selected.</div>
+        </div>
+    </div>
+
+    <script>
+        // API Base URLs and your API key
+        const API_KEY = 'prince';
+        const BASE_URLS = {
+            generate: `https://api.princetechn.com/api/tempmail/generate?apikey=${API_KEY}`,
+            inbox: `https://api.princetechn.com/api/tempmail/inbox?apikey=${API_KEY}&email=`,
+            message: `https://api.princetechn.com/api/tempmail/message?apikey=${API_KEY}&email=`,
+        };
+
+        // DOM Elements
+        const statusText = document.getElementById('status-text');
+        const emailDisplay = document.getElementById('email-display');
+        const inboxList = document.getElementById('inbox-list');
+        const inboxCount = document.getElementById('inbox-count');
+        const messageContent = document.getElementById('message-content');
+
+        // State variables
+        let currentEmail = '';
+
+        // --- Utility Functions ---
+        function setStatus(text) {
+            statusText.textContent = `Status: ${text}`;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                setStatus('Copied to clipboard!');
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+                setStatus('Failed to copy email!');
+            });
+        }
+
+        // Attach copy listener to email display
+        emailDisplay.addEventListener('click', () => {
+            if (currentEmail) {
+                copyToClipboard(currentEmail);
+            }
+        });
+
+        // --- API Functions ---
+
+        /**
+         * 1. Generates a new temporary email address.
+         */
+        async function generateEmail() {
+            setStatus('Generating email...');
+            currentEmail = '';
+            emailDisplay.textContent = '...';
+            inboxList.innerHTML = '<li id="inbox-placeholder" style="color: #b0b0d0;">No inbox yet. Generate an email to start.</li>';
+            inboxCount.textContent = '0';
+            messageContent.textContent = 'No message selected.';
+
+            try {
+                const response = await fetch(BASE_URLS.generate);
+                const data = await response.json();
+
+                if (data.status && data.result) {
+                    currentEmail = data.result.email;
+                    emailDisplay.textContent = currentEmail;
+                    setStatus('New email generated!');
+                    copyToClipboard(currentEmail); 
+                } else {
+                    setStatus('Error generating email: ' + (data.message || 'Unknown error'));
+                    emailDisplay.textContent = '-- Error --';
+                }
+            } catch (error) {
+                console.error('Fetch error for generate:', error);
+                setStatus('Network error. Check console.');
+                emailDisplay.textContent = '-- Error --';
+            }
+        }
+
+        /**
+         * 2. Checks the inbox for the current email address.
+         */
+        async function checkInbox() {
+            if (!currentEmail) {
+                setStatus('Please generate an email first.');
+                return;
+            }
+
+            setStatus('Checking inbox...');
+
+            try {
+                const url = BASE_URLS.inbox + currentEmail;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.status && Array.isArray(data.result)) {
+                    inboxList.innerHTML = ''; // Clear existing list
+                    inboxCount.textContent = data.result.length;
+
+                    if (data.result.length === 0) {
+                        inboxList.innerHTML = '<li style="color: #b0b0d0;">Inbox is empty. Try refreshing.</li>';
+                    } else {
+                        data.result.forEach(mail => {
+                            const li = document.createElement('li');
+                            li.className = 'inbox-item';
+                            li.setAttribute('data-message-id', mail.id);
+                            const sender = mail.from.match(/<([^>]+)>/) ? mail.from.match(/<([^>]+)>/)[1] : mail.from;
+                            li.innerHTML = `
+                                <strong>${sender}</strong>
+                                <span>Subject: ${mail.subject}</span>
+                            `;
+                            li.addEventListener('click', () => {
+                                loadMessage(mail.id);
+                            });
+                            inboxList.appendChild(li);
+                        });
+                    }
+                    setStatus(`Inbox checked. ${data.result.length} new messages.`);
+                } else {
+                    setStatus('Error checking inbox: ' + (data.message || 'Unknown error'));
+                    inboxList.innerHTML = '<li style="color: red;">Failed to load inbox.</li>';
+                    inboxCount.textContent = '0';
+                }
+
+            } catch (error) {
+                console.error('Fetch error for inbox:', error);
+                setStatus('Network error. Check console.');
+            }
+        }
+
+        /**
+         * 3. Loads the content of a specific message. (PERMANENT FIX FOR NESTED DATA AND ROBUST ERROR HANDLING)
+         * @param {string} messageId - The ID of the message to load.
+         */
+        async function loadMessage(messageId) {
+            if (!currentEmail) {
+                setStatus('Please generate an email first.');
+                return;
+            }
+
+            setStatus(`Loading message ID: ${messageId}...`);
+            messageContent.textContent = 'Loading...';
+
+            try {
+                const url = `${BASE_URLS.message}${currentEmail}&messageid=${messageId}`;
+                
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                     // Check if response is not 200 OK (e.g., 404 Not Found, 500 Server Error)
+                    const statusText = response.statusText || 'Unknown Network Status';
+                    setStatus(`Network Error loading message: ${statusText}`);
+                    messageContent.textContent = `Failed to load message. Network error: ${response.status} (${statusText})`;
+                    return;
+                }
+
+                const data = await response.json();
+
+                // *** CONSOLE LOGGING FOR DIAGNOSTICS ***
+                console.log("--- MESSAGE API RESPONSE ---");
+                console.log("URL Used:", url);
+                console.log("Response Data:", data);
+                console.log("----------------------------");
+                // *** END: CONSOLE LOGGING ***
+
+                // --- PRIORITY 1: CHECK FOR THE NESTED 'data.data' STRUCTURE (From your RAW data) ---
+                if (data.code === 0 && data.data) { 
+                    let body = '';
+                    const messageData = data.data; // The object containing 'html', 'id', etc.
+
+                    // Check for message content inside the nested 'data' object
+                    if (messageData.text) {
+                        body = messageData.text; 
+                    } else if (messageData.html) {
+                        body = messageData.html; 
+                    } 
+                    
+                    if (body) {
+                        // Replace HTML line breaks (<br>) with newlines for clean display
+                        messageContent.textContent = body.replace(/<br>/g, '\n'); 
+                        setStatus(`Message loaded!`); 
+                    } else {
+                        // Content is empty/unreadable in the primary fields
+                        messageContent.textContent = `Message body is empty or unreadable (Nested data format). Full response data: \n\n` + JSON.stringify(data, null, 2);
+                        setStatus('Message content missing.');
+                    }
+                // --- PRIORITY 2: FALLBACK CHECK FOR THE 'status/result' STRUCTURE (The older format) ---
+                } else if (data.status === true && data.result) {
+                    let body = data.result.text || data.result.html;
+                     if (body) {
+                        messageContent.textContent = body.replace(/<br>/g, '\n'); 
+                        setStatus(`Message loaded!`); 
+                    } else {
+                        setStatus('API Error loading message: Content field is empty (Fallback format).');
+                        messageContent.textContent = 'Failed to load message. Content field is empty.';
+                    }
+                } else {
+                    // Handle API errors based on 'code', 'message', or 'status' fields (e.g., expired message)
+                    setStatus('API Error loading message: ' + (data.message || 'Unknown error'));
+                    messageContent.textContent = 'Failed to load message. API error: ' + (data.message || 'Unknown');
+                }
+
+            } catch (error) {
+                console.error('Network or JSON parsing error for message:', error);
+                setStatus('Network or parsing error. Check console.');
+                messageContent.textContent = 'Network error or unable to read message data.';
+            }
+        }
+
+        /**
+         * Clears the current email and resets the UI.
+         */
+        function clearEmail() {
+            currentEmail = '';
+            emailDisplay.textContent = '--';
+            inboxList.innerHTML = '<li id="inbox-placeholder" style="color: #b0b0d0;">No inbox yet. Generate an email to start.</li>';
+            inboxCount.textContent = '0';
+            messageContent.textContent = 'No message selected.';
+            setStatus('Cleared and ready to generate new email.');
+        }
+
+        // Initial setup
+        setStatus('Ready.');
+    </script>
+</body>
+</html>
+

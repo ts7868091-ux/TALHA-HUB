@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TALHA HUB - Login</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+    :root {
+      --accent-blue: #00ffff;
+      --accent-pink: #ff00ff;
+      --text-light: #ffffff;
+      --button-bg-jazz: linear-gradient(135deg, #ff6f00, #ffd180);
+      --button-bg-zong: linear-gradient(135deg, #9c27b0, #e0bbe4);
+      --button-bg-simdb: linear-gradient(135deg, #00c853, #b9f6ca);
+      --button-bg-aiimg: linear-gradient(135deg, #3f51b5, #c5cae9);
+      --button-bg-telegram: linear-gradient(135deg, #0088cc, #00c0ff);
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      flex-direction: column;
+      background: linear-gradient(135deg, #ff007f, #007bff, #00c853, #ff9800);
+      background-size: 400% 400%;
+      animation: gradientShift 10s ease infinite;
+      color: var(--text-light);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background watermark text animation */
+    body::before {
+      content: "Supported by Kami_Broken 💥";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-25deg);
+      font-size: 3rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.08);
+      white-space: nowrap;
+      pointer-events: none;
+      animation: moveWatermark 10s linear infinite alternate;
+    }
+
+    @keyframes moveWatermark {
+      0% { transform: translate(-45%, -45%) rotate(-25deg); }
+      100% { transform: translate(-55%, -55%) rotate(-25deg); }
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    #main-box {
+      background: rgba(0,0,0,0.6);
+      padding: 35px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+      width: 90%;
+      max-width: 420px;
+      position: relative;
+      z-index: 2;
+    }
+
+    #logo-container {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid #00ffff;
+      margin: 0 auto 20px;
+      box-shadow: 0 0 30px #00ffff, 0 0 40px #ff00ff;
+      animation: pulseGlow 2s infinite alternate;
+    }
+
+    #logo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    @keyframes pulseGlow {
+      0%,100% { box-shadow: 0 0 20px cyan, 0 0 25px magenta; }
+      50% { box-shadow: 0 0 40px magenta, 0 0 50px cyan; }
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+      text-shadow: 0 0 20px cyan, 0 0 30px magenta;
+    }
+
+    input[type="password"] {
+      width: 80%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      text-align: center;
+      font-size: 1.1em;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      letter-spacing: 3px;
+      box-shadow: 0 0 10px #00ffff;
+    }
+
+    #error-text {
+      color: #ff4d4d;
+      margin-top: 10px;
+      font-weight: 600;
+      display: none;
+      text-shadow: 0 0 10px red;
+      animation: shake 0.3s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+
+    #login-btn {
+      background: linear-gradient(135deg, #00ffff, #ff00ff);
+      font-weight: 700;
+      font-size: 1.1em;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    #login-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px #00ffff, 0 0 35px #ff00ff;
+    }
+
+    .action-button {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      padding: 15px 20px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1em;
+      font-weight: 700;
+      color: white;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 0 15px rgba(0,255,255,0.5),
+                  0 0 25px rgba(255,0,255,0.5);
+    }
+
+    .action-button img {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .action-button:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 0 25px #00ffff, 0 0 35px #ff00ff;
+    }
+
+    #buttons-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 25px;
+    }
+
+    #telegram {
+      background: var(--button-bg-telegram);
+      margin-top: 18px;
+    }
+
+    #logout-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 8px 15px;
+      font-size: 0.9em;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      background: linear-gradient(135deg, #ff004c, #ff7b7b);
+      box-shadow: 0 0 15px rgba(255,0,0,0.4);
+      display: none;
+    }
+
+    #logout-btn:hover {
+      box-shadow: 0 0 25px #ff004c;
+      transform: scale(1.05);
+    }
+
+    footer {
+      margin-top: 25px;
+      font-weight: 600;
+      text-shadow: 0 0 20px cyan, 0 0 30px magenta;
+      animation: glowText 2s infinite alternate;
+    }
+
+    @keyframes glowText {
+      from { text-shadow: 0 0 10px #00ffff; }
+      to { text-shadow: 0 0 25px #ff00ff; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="main-box">
+    <button id="logout-btn" onclick="logout()">Logout</button>
+
+    <div id="logo-container">
+      <img id="logo" src="images/talha_logo.png" alt="Talha Hub Logo" />
+    </div>
+
+    <h1>TALHA HUB LOGIN</h1>
+
+    <input type="password" id="pass" placeholder="Enter Key" maxlength="6">
+    <button id="login-btn" onclick="checkLogin()">LOGIN</button>
+    <div id="error-text">❌ Wrong Key! Try Again</div>
+
+    <!-- Telegram button (only login screen) -->
+    <a href="https://t.me/legendtalha" target="_blank" class="action-button" id="telegram">
+      <img src="images/telegram.png" alt="Telegram Logo"> JOIN TELEGRAM CHANNEL
+    </a>
+
+    <div id="main-content" style="display:none;">
+      <div id="buttons-container">
+        <a href="jazztv.html" class="action-button" style="background:var(--button-bg-jazz);">
+          <img src="images/jazz.png" alt="Jazz Logo"> JAZZ TV
+        </a>
+        <a href="zongtv.html" class="action-button" style="background:var(--button-bg-zong);">
+          <img src="images/zong.png" alt="Zong Logo"> ZONG TV
+        </a>
+        <a href="database.html" class="action-button" style="background:var(--button-bg-simdb);">
+          <img src="images/database.png" alt="Database Logo"> SIM DATABASE
+        </a>
+        <a href="aiimage.html" class="action-button" style="background:var(--button-bg-aiimg);">
+          <img src="images/ai.png" alt="AI Logo"> AI IMAGE GENERATOR
+        </a>
+      </div>
+    </div>
+
+    <footer>POWERED BY TALHA 💯</footer>
+  </div>
+
+  <script>
+    function checkLogin() {
+      const pass = document.getElementById('pass').value.trim();
+      const errorText = document.getElementById('error-text');
+      if (pass === "786") {
+        document.getElementById('main-content').style.display = 'block';
+        document.getElementById('pass').style.display = 'none';
+        document.getElementById('login-btn').style.display = 'none';
+        document.getElementById('telegram').style.display = 'none';
+        errorText.style.display = 'none';
+        document.querySelector('h1').innerText = "TALHA HUB";
+        document.getElementById('logout-btn').style.display = 'block';
+      } else {
+        errorText.style.display = 'block';
+      }
+    }
+
+    function logout() {
+      document.getElementById('main-content').style.display = 'none';
+      document.getElementById('pass').style.display = 'inline-block';
+      document.getElementById('login-btn').style.display = 'inline-block';
+      document.getElementById('telegram').style.display = 'flex';
+      document.getElementById('logout-btn').style.display = 'none';
+      document.querySelector('h1').innerText = "TALHA HUB LOGIN";
+      document.getElementById('pass').value = "";
+    }
+  </script>
+
+</body>
+</html>
