@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,8 +16,6 @@
       --button-bg-simdb: linear-gradient(135deg, #00c853, #b9f6ca);
       --button-bg-aiimg: linear-gradient(135deg, #3f51b5, #c5cae9);
       --button-bg-telegram: linear-gradient(135deg, #0088cc, #00c0ff);
-      --button-bg-translator: linear-gradient(135deg, #00ffff, #ff00ff);
-      --button-bg-weather: linear-gradient(135deg, #00bcd4, #80deea);
     }
 
     body {
@@ -38,6 +35,7 @@
       overflow: hidden;
     }
 
+    /* Background watermark text animation */
     body::before {
       content: "Supported by Kami_Broken 💥";
       position: absolute;
@@ -192,6 +190,27 @@
       margin-top: 18px;
     }
 
+    #logout-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 8px 15px;
+      font-size: 0.9em;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      background: linear-gradient(135deg, #ff004c, #ff7b7b);
+      box-shadow: 0 0 15px rgba(255,0,0,0.4);
+      display: none;
+    }
+
+    #logout-btn:hover {
+      box-shadow: 0 0 25px #ff004c;
+      transform: scale(1.05);
+    }
+
     footer {
       margin-top: 25px;
       font-weight: 600;
@@ -208,6 +227,8 @@
 <body>
 
   <div id="main-box">
+    <button id="logout-btn" onclick="logout()">Logout</button>
+
     <div id="logo-container">
       <img id="logo" src="images/talha_logo.png" alt="Talha Hub Logo" />
     </div>
@@ -218,6 +239,7 @@
     <button id="login-btn" onclick="checkLogin()">LOGIN</button>
     <div id="error-text">❌ Wrong Key! Try Again</div>
 
+    <!-- Telegram button (only login screen) -->
     <a href="https://t.me/legendtalha" target="_blank" class="action-button" id="telegram">
       <img src="images/telegram.png" alt="Telegram Logo"> JOIN TELEGRAM CHANNEL
     </a>
@@ -236,12 +258,6 @@
         <a href="aiimage.html" class="action-button" style="background:var(--button-bg-aiimg);">
           <img src="images/ai.png" alt="AI Logo"> AI IMAGE GENERATOR
         </a>
-        <a href="translator.html" class="action-button" style="background:var(--button-bg-translator);">
-          <img src="images/translator.png" alt="Translator Logo"> TRANSLATOR
-        </a>
-        <a href="weather.html" class="action-button" style="background:var(--button-bg-weather);">
-          <img src="images/weather.png" alt="Weather Logo"> WEATHER INFO
-        </a>
       </div>
     </div>
 
@@ -259,9 +275,20 @@
         document.getElementById('telegram').style.display = 'none';
         errorText.style.display = 'none';
         document.querySelector('h1').innerText = "TALHA HUB";
+        document.getElementById('logout-btn').style.display = 'block';
       } else {
         errorText.style.display = 'block';
       }
+    }
+
+    function logout() {
+      document.getElementById('main-content').style.display = 'none';
+      document.getElementById('pass').style.display = 'inline-block';
+      document.getElementById('login-btn').style.display = 'inline-block';
+      document.getElementById('telegram').style.display = 'flex';
+      document.getElementById('logout-btn').style.display = 'none';
+      document.querySelector('h1').innerText = "TALHA HUB LOGIN";
+      document.getElementById('pass').value = "";
     }
   </script>
 
