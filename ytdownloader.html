@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TALHA HUB — YouTube Downloader</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    background: radial-gradient(circle at center, #000000, #1a1a1a);
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    text-align: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  h1 {
+    font-size: 2em;
+    margin-bottom: 20px;
+    text-shadow: 0 0 20px red, 0 0 40px #ff5252;
+  }
+
+  input {
+    width: 80%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    outline: none;
+    font-size: 1em;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  button {
+    background: linear-gradient(135deg, #ff0000, #ff5252);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 0 15px #ff0000, 0 0 30px #ff5252;
+    transition: transform 0.3s ease;
+  }
+
+  button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px #ff0000, 0 0 40px #ff5252;
+  }
+
+  #result {
+    margin-top: 30px;
+    font-size: 1.1em;
+    color: #fff;
+  }
+
+  .download-link {
+    display: block;
+    background: linear-gradient(135deg, #00c853, #b9f6ca);
+    color: black;
+    text-decoration: none;
+    padding: 12px;
+    margin: 10px auto;
+    width: 80%;
+    border-radius: 10px;
+    font-weight: 600;
+    box-shadow: 0 0 15px #00ff80;
+  }
+
+  footer {
+    margin-top: 40px;
+    font-weight: 600;
+    color: #00ffff;
+    text-shadow: 0 0 20px cyan, 0 0 30px magenta;
+  }
+</style>
+</head>
+<body>
+
+  <h1>🎥 TALHA HUB YOUTUBE DOWNLOADER</h1>
+  <input type="text" id="ytLink" placeholder="Enter YouTube Video URL">
+  <br>
+  <button onclick="getVideo()">Download</button>
+
+  <div id="result"></div>
+
+  <footer>POWERED BY TALHA 💯</footer>
+
+<script>
+async function getVideo() {
+  const link = document.getElementById('ytLink').value.trim();
+  const result = document.getElementById('result');
+  result.innerHTML = "⏳ Fetching download links...";
+
+  if (!link.includes("youtube.com") && !link.includes("youtu.be")) {
+    result.innerHTML = "❌ Please enter a valid YouTube link.";
+    return;
+  }
+
+  try {
+    const res = await fetch(`https://ytdl-api.vercel.app/api/json?url=${encodeURIComponent(link)}`);
+    const data = await res.json();
+
+    if (!data || !data.formats) {
+      result.innerHTML = "⚠️ Unable to fetch download options. Try another link.";
+      return;
+    }
+
+    let html = `<h3>${data.title}</h3><img src="${data.thumbnail}" width="300" style="border-radius:10px;"><br>`;
+    data.formats.forEach(fmt => {
+      if (fmt.url && fmt.qualityLabel) {
+        html += `<a href="${fmt.url}" class="download-link" target="_blank">${fmt.qualityLabel} (${fmt.mimeType.split(';')[0]})</a>`;
+      }
+    });
+    result.innerHTML = html;
+  } catch (err) {
+    console.error(err);
+    result.innerHTML = "❌ Error fetching video. Please try again.";
+  }
+}
+</script>
+</body>
+</html>
