@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>(function(s){s.dataset.zone='10077530',s.src='https://forfrogadiertor.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-  <script src="https://fpyf8.com/88/tag.min.js" data-zone="179728" async data-cfasync="false"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TALHA HUB - Login</title>
@@ -18,6 +16,9 @@
       --button-bg-simdb: linear-gradient(135deg, #00c853, #b9f6ca);
       --button-bg-aiimg: linear-gradient(135deg, #3f51b5, #c5cae9);
       --button-bg-telegram: linear-gradient(135deg, #0088cc, #00c0ff);
+      --button-bg-translator: linear-gradient(135deg, #00ffff, #ff00ff);
+      --button-bg-weather: linear-gradient(135deg, #00bcd4, #80deea);
+      --button-bg-ytdl: linear-gradient(135deg, #ff0000, #ff7b7b);
     }
 
     body {
@@ -37,7 +38,6 @@
       overflow: hidden;
     }
 
-    /* Background watermark text animation */
     body::before {
       content: "Supported by Kami_Broken 💥";
       position: absolute;
@@ -192,25 +192,20 @@
       margin-top: 18px;
     }
 
-    #logout-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      padding: 8px 15px;
-      font-size: 0.9em;
-      font-weight: 600;
-      border-radius: 8px;
+    iframe {
+      width: 100%;
+      height: 85vh;
       border: none;
-      cursor: pointer;
-      color: white;
-      background: linear-gradient(135deg, #ff004c, #ff7b7b);
-      box-shadow: 0 0 15px rgba(255,0,0,0.4);
+      border-radius: 15px;
       display: none;
+      margin-top: 15px;
+      box-shadow: 0 0 25px #00ffff, 0 0 35px #ff00ff;
+      animation: fadeIn 0.5s ease;
     }
 
-    #logout-btn:hover {
-      box-shadow: 0 0 25px #ff004c;
-      transform: scale(1.05);
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
     }
 
     footer {
@@ -229,8 +224,6 @@
 <body>
 
   <div id="main-box">
-    <button id="logout-btn" onclick="logout()">Logout</button>
-
     <div id="logo-container">
       <img id="logo" src="images/talha_logo.png" alt="Talha Hub Logo" />
     </div>
@@ -241,7 +234,6 @@
     <button id="login-btn" onclick="checkLogin()">LOGIN</button>
     <div id="error-text">❌ Wrong Key! Try Again</div>
 
-    <!-- Telegram button (only login screen) -->
     <a href="https://t.me/legendtalha" target="_blank" class="action-button" id="telegram">
       <img src="images/telegram.png" alt="Telegram Logo"> JOIN TELEGRAM CHANNEL
     </a>
@@ -260,7 +252,18 @@
         <a href="aiimage.html" class="action-button" style="background:var(--button-bg-aiimg);">
           <img src="images/ai.png" alt="AI Logo"> AI IMAGE GENERATOR
         </a>
+        <a href="translator.html" class="action-button" style="background:var(--button-bg-translator);">
+          <img src="images/translator.png" alt="Translator Logo"> TRANSLATOR
+        </a>
+        <a href="weather.html" class="action-button" style="background:var(--button-bg-weather);">
+          <img src="images/weather.png" alt="Weather Logo"> WEATHER INFO
+        </a>
+        <button class="action-button" style="background:var(--button-bg-ytdl);" onclick="openYouTubeDownloader()">
+          <img src="images/youtube.png" alt="YouTube Logo"> YOUTUBE DOWNLOADER
+        </button>
       </div>
+
+      <iframe id="ytdl-frame" src=""></iframe>
     </div>
 
     <footer>POWERED BY TALHA 💯</footer>
@@ -277,20 +280,16 @@
         document.getElementById('telegram').style.display = 'none';
         errorText.style.display = 'none';
         document.querySelector('h1').innerText = "TALHA HUB";
-        document.getElementById('logout-btn').style.display = 'block';
       } else {
         errorText.style.display = 'block';
       }
     }
 
-    function logout() {
-      document.getElementById('main-content').style.display = 'none';
-      document.getElementById('pass').style.display = 'inline-block';
-      document.getElementById('login-btn').style.display = 'inline-block';
-      document.getElementById('telegram').style.display = 'flex';
-      document.getElementById('logout-btn').style.display = 'none';
-      document.querySelector('h1').innerText = "TALHA HUB LOGIN";
-      document.getElementById('pass').value = "";
+    function openYouTubeDownloader() {
+      const frame = document.getElementById('ytdl-frame');
+      frame.src = "https://y2mate.is/";
+      frame.style.display = "block";
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }
   </script>
 
