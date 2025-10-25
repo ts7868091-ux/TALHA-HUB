@@ -1,19 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>(function(s){s.dataset.zone='10092159',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-  <script src="https://fpyf8.com/88/tag.min.js" data-zone="180435" async data-cfasync="false"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TALHA HUB - Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
     body {
       min-height: 100vh;
@@ -44,7 +37,6 @@
       width: 90%;
       backdrop-filter: blur(10px);
       margin: 50px 0;
-      position: relative;
     }
 
     .logo {
@@ -84,7 +76,7 @@
       margin-top: 10px;
     }
 
-    .login-btn {
+    .login-btn, .logout-btn {
       margin-top: 15px;
       padding: 12px 30px;
       border: none;
@@ -97,7 +89,7 @@
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-    .login-btn:hover {
+    .login-btn:hover, .logout-btn:hover {
       transform: scale(1.05);
       box-shadow: 0 0 25px #00ffff, 0 0 35px #ff00ff;
     }
@@ -116,14 +108,15 @@
       margin-top: 25px;
     }
 
-    button.action-btn {
+    a.action-btn {
       width: 100%;
       padding: 16px;
       border: none;
       border-radius: 12px;
-      font-size: 1.2em;
+      font-size: 1.1em;
       font-weight: 700;
       color: white;
+      text-decoration: none;
       cursor: pointer;
       background: linear-gradient(135deg, #00ffff, #007bff);
       box-shadow: 0 0 20px rgba(0,255,255,0.3);
@@ -134,12 +127,12 @@
       gap: 10px;
     }
 
-    button.action-btn img {
-      width: 30px;
-      height: 30px;
+    a.action-btn img {
+      width: 28px;
+      height: 28px;
     }
 
-    button.action-btn:hover {
+    a.action-btn:hover {
       transform: translateY(-3px);
       box-shadow: 0 0 30px #ff00ff, 0 0 50px #00ffff;
     }
@@ -156,37 +149,13 @@
       to { text-shadow: 0 0 25px #ff00ff; }
     }
 
-    /* Logout button */
-    .logout-btn {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      padding: 8px 15px;
-      font-size: 0.9em;
-      background: linear-gradient(135deg, #ff00ff, #00ffff);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .logout-btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 20px #00ffff, 0 0 30px #ff00ff;
-    }
-
     @media (max-width: 480px) {
-      button.action-btn {
-        font-size: 1.1em;
-      }
+      a.action-btn { font-size: 1em; }
     }
   </style>
 </head>
 <body>
 
-  <!-- LOGIN PAGE -->
   <div class="main-box" id="login-box">
     <img src="images/talha_logo.png" class="logo" alt="TALHA HUB Logo">
     <h1>TALHA HUB LOGIN</h1>
@@ -195,35 +164,33 @@
     <div class="error" id="errorText">❌ Wrong Key! Try Again</div>
   </div>
 
-  <!-- DASHBOARD PAGE -->
   <div class="main-box" id="dashboard" style="display:none;">
-    <button class="logout-btn" onclick="logout()">Logout</button>
     <img src="images/talha_logo.png" class="logo" alt="TALHA HUB Logo">
     <h1>TALHA HUB</h1>
 
     <div class="button-container">
-      <button class="action-btn" onclick="openPage('jazztv.html')"><img src="icons/jazz.png" alt="">JAZZ TV</button>
-      <button class="action-btn" onclick="openPage('zongtv.html')"><img src="icons/zong.png" alt="">ZONG TV</button>
-      <button class="action-btn" onclick="openPage('database.html')"><img src="icons/database.png" alt="">DATABASE</button>
-      <button class="action-btn" onclick="openPage('aiimage.html')"><img src="icons/ai.png" alt="">AI IMAGE GENERATOR</button>
-      <button class="action-btn" onclick="openPage('temp-mail.html')"><img src="icons/mail.png" alt="">TEMP MAIL</button>
-      <button class="action-btn" onclick="openPage('facebook-downloader.html')"><img src="icons/facebook.png" alt="">FACEBOOK DOWNLOADER</button>
-      <button class="action-btn" onclick="openPage('youtube-downloader.html')"><img src="icons/youtube.png" alt="">YOUTUBE DOWNLOADER</button>
+      <a href="tamasha.html" target="_blank" class="action-btn"><img src="icons/tamasha.png">Tamasha Activation</a>
+      <a href="jazztv.html" class="action-btn"><img src="icons/jazz.png">Jazz TV</a>
+      <a href="zongtv.html" class="action-btn"><img src="icons/zong.png">Zong TV</a>
+      <a href="database.html" class="action-btn"><img src="icons/database.png">Database</a>
+      <a href="aiimage.html" class="action-btn"><img src="icons/ai.png">AI Image Generator</a>
+      <a href="temp-mail.html" class="action-btn"><img src="icons/mail.png">Temp Mail</a>
+      <a href="facebook-downloader.html" class="action-btn"><img src="icons/facebook.png">Facebook Downloader</a>
+      <a href="youtube-downloader.html" class="action-btn"><img src="icons/youtube.png">YouTube Downloader</a>
     </div>
 
-    <footer>POWERED BY TALHA 💯</footer>
+    <button class="logout-btn" onclick="logout()">LOGOUT</button>
+    <footer>POWERED BY TALHA SHAIKH 💯</footer>
   </div>
 
   <script>
-    // Show dashboard if already logged in
     window.onload = () => {
       if (localStorage.getItem("access") === "granted") {
         document.getElementById("login-box").style.display = "none";
         document.getElementById("dashboard").style.display = "block";
       }
-    };
+    }
 
-    // Key check function
     function checkKey() {
       const key = document.getElementById("keyInput").value.trim();
       const error = document.getElementById("errorText");
@@ -238,27 +205,10 @@
       }
     }
 
-    // Open internal page safely
-    function openPage(page) {
-      fetch(page)
-        .then(response => {
-          if (response.ok) {
-            window.location.href = page;
-          } else {
-            alert(`⚠️ Page "${page}" not found in this folder!`);
-          }
-        })
-        .catch(() => {
-          alert(`⚠️ Error loading ${page}. Make sure it is in the same folder.`);
-        });
-    }
-
-    // Logout function
     function logout() {
       localStorage.removeItem("access");
       document.getElementById("dashboard").style.display = "none";
       document.getElementById("login-box").style.display = "block";
-      document.getElementById("keyInput").value = "";
     }
   </script>
 
