@@ -42,6 +42,7 @@
       width: 90%;
       backdrop-filter: blur(10px);
       margin: 50px 0;
+      position: relative;
     }
 
     .logo {
@@ -132,8 +133,8 @@
     }
 
     button.action-btn img {
-      width: 26px;
-      height: 26px;
+      width: 30px;
+      height: 30px;
     }
 
     button.action-btn:hover {
@@ -153,6 +154,27 @@
       to { text-shadow: 0 0 25px #ff00ff; }
     }
 
+    /* Logout button */
+    .logout-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      padding: 8px 15px;
+      font-size: 0.9em;
+      background: linear-gradient(135deg, #ff00ff, #00ffff);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px #00ffff, 0 0 30px #ff00ff;
+    }
+
     @media (max-width: 480px) {
       button.action-btn {
         font-size: 1.1em;
@@ -162,6 +184,7 @@
 </head>
 <body>
 
+  <!-- LOGIN PAGE -->
   <div class="main-box" id="login-box">
     <img src="images/talha_logo.png" class="logo" alt="TALHA HUB Logo">
     <h1>TALHA HUB LOGIN</h1>
@@ -170,32 +193,35 @@
     <div class="error" id="errorText">❌ Wrong Key! Try Again</div>
   </div>
 
+  <!-- DASHBOARD PAGE -->
   <div class="main-box" id="dashboard" style="display:none;">
+    <button class="logout-btn" onclick="logout()">Logout</button>
     <img src="images/talha_logo.png" class="logo" alt="TALHA HUB Logo">
     <h1>TALHA HUB</h1>
 
     <div class="button-container">
-      <button class="action-btn" onclick="openPage('jazztv.html')"><img src="icons/jazz.png">JAZZ TV</button>
-      <button class="action-btn" onclick="openPage('zongtv.html')"><img src="icons/zong.png">ZONG TV</button>
-      <button class="action-btn" onclick="openPage('database.html')"><img src="icons/database.png">DATABASE</button>
-      <button class="action-btn" onclick="openPage('aiimage.html')"><img src="icons/ai.png">AI IMAGE GENERATOR</button>
-      <button class="action-btn" onclick="openPage('facebook-downloader.html')"><img src="icons/facebook.png">FACEBOOK DOWNLOADER</button>
-      <button class="action-btn" onclick="openPage('youtube-downloader.html')"><img src="icons/youtube.png">YOUTUBE DOWNLOADER</button>
-      <button class="action-btn" onclick="openPage('temp-mail.html')"><img src="icons/mail.png">TEMP MAIL</button>
+      <button class="action-btn" onclick="openPage('jazztv.html')"><img src="icons/jazz.png" alt="">JAZZ TV</button>
+      <button class="action-btn" onclick="openPage('zongtv.html')"><img src="icons/zong.png" alt="">ZONG TV</button>
+      <button class="action-btn" onclick="openPage('database.html')"><img src="icons/database.png" alt="">DATABASE</button>
+      <button class="action-btn" onclick="openPage('aiimage.html')"><img src="icons/ai.png" alt="">AI IMAGE GENERATOR</button>
+      <button class="action-btn" onclick="openPage('temp-mail.html')"><img src="icons/mail.png" alt="">TEMP MAIL</button>
+      <button class="action-btn" onclick="openPage('facebook-downloader.html')"><img src="icons/facebook.png" alt="">FACEBOOK DOWNLOADER</button>
+      <button class="action-btn" onclick="openPage('youtube-downloader.html')"><img src="icons/youtube.png" alt="">YOUTUBE DOWNLOADER</button>
     </div>
 
     <footer>POWERED BY TALHA 💯</footer>
   </div>
 
   <script>
-    // Hide login if key already entered
+    // Show dashboard if already logged in
     window.onload = () => {
       if (localStorage.getItem("access") === "granted") {
         document.getElementById("login-box").style.display = "none";
         document.getElementById("dashboard").style.display = "block";
       }
-    }
+    };
 
+    // Key check function
     function checkKey() {
       const key = document.getElementById("keyInput").value.trim();
       const error = document.getElementById("errorText");
@@ -210,8 +236,8 @@
       }
     }
 
+    // Open internal page safely
     function openPage(page) {
-      // Ensure the file exists before redirecting
       fetch(page)
         .then(response => {
           if (response.ok) {
@@ -223,6 +249,14 @@
         .catch(() => {
           alert(`⚠️ Error loading ${page}. Make sure it is in the same folder.`);
         });
+    }
+
+    // Logout function
+    function logout() {
+      localStorage.removeItem("access");
+      document.getElementById("dashboard").style.display = "none";
+      document.getElementById("login-box").style.display = "block";
+      document.getElementById("keyInput").value = "";
     }
   </script>
 
