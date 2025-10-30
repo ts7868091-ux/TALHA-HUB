@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TALHA HUB — Zong TV</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+body {
+  min-height:100vh;
+  background:linear-gradient(135deg, #f5e6f0 0%, #e8f4f8 100%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:20px;
+  position:relative;
+  overflow-y:auto;
+  overflow-x:hidden;
+  transition:background 0.5s ease;
+}
+@media (max-width:768px) {
+  body { padding:10px; }
+}
+body.dark-mode { background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+.neon-bg { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+.neon-circle { position:absolute; border-radius:50%; filter:blur(60px); opacity:0.4; animation:float 20s infinite ease-in-out; }
+.neon-circle:nth-child(1) { width:300px; height:300px; background:linear-gradient(45deg, #ff006e, #8338ec); top:-100px; left:-100px; animation-duration:25s; }
+.neon-circle:nth-child(2) { width:250px; height:250px; background:linear-gradient(45deg, #06ffa5, #00d9ff); top:50%; right:-100px; animation-duration:30s; animation-delay:-5s; }
+.neon-circle:nth-child(3) { width:350px; height:350px; background:linear-gradient(45deg, #ffbe0b, #fb5607); bottom:-150px; left:20%; animation-duration:35s; animation-delay:-10s; }
+.neon-circle:nth-child(4) { width:200px; height:200px; background:linear-gradient(45deg, #7209b7, #3a0ca3); top:20%; right:30%; animation-duration:28s; animation-delay:-15s; }
+@keyframes float { 0%, 100% { transform:translate(0,0) rotate(0deg); } 25% { transform:translate(100px,100px) rotate(90deg); } 50% { transform:translate(-50px,150px) rotate(180deg); } 75% { transform:translate(150px,-50px) rotate(270deg); } }
+body.dark-mode .neon-circle { opacity:0.3; filter:blur(80px); }
+
+.container { 
+  width:100%; 
+  max-width:1000px; 
+  margin:0 auto; 
+  background:white; 
+  border-radius:20px; 
+  box-shadow:0 10px 40px rgba(0,0,0,0.1); 
+  overflow:visible; 
+  position:relative; 
+  z-index:1; 
+  transition:all 0.3s;
+  display:flex;
+  flex-direction:column;
+}
+@media (max-width:768px) {
+  .container { border-radius:12px; min-height:calc(100vh - 40px); }
+}
+body.dark-mode .container { background:rgba(30,30,46,0.95); box-shadow:0 10px 40px rgba(0,0,0,0.5); backdrop-filter:blur(10px); }
+
+.header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:20px 30px;
+  border-bottom:1px solid #e5e7eb;
+  transition:border-color 0.3s ease;
+}
+body.dark-mode .header { border-bottom-color:#4a4a5e; }
+.header-controls { display:flex; align-items:center; gap:10px; }
+.theme-toggle { width:50px; height:26px; background:#6b7280; border-radius:13px; position:relative; cursor:pointer; transition:background 0.3s ease; margin-right:10px; }
+.theme-toggle.active { background:#3b82f6; }
+.theme-toggle::before { content:''; position:absolute; width:22px; height:22px; border-radius:50%; background:white; top:2px; left:2px; transition:transform 0.3s ease; }
+.theme-toggle.active::before { transform:translateX(24px); }
+
+.logo-section { display:flex; align-items:center; gap:12px; }
+.logo { width:40px; height:40px; border-radius:8px; }
+.logo-text { font-size:1.2rem; font-weight:700; color:#1f2937; transition:color 0.3s; }
+body.dark-mode .logo-text { color:#e0e0e0; }
+.back-btn { padding:8px 16px; background:#6b7280; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; transition:all 0.3s; font-size:0.9rem; text-decoration:none; }
+.back-btn:hover { background:#4b5563; transform:translateY(-2px); }
+.content { padding:30px; flex:1; }
+@media (max-width:768px) {
+  .content { padding:20px 15px; }
+}
+.page-title { font-size:1.8rem; font-weight:700; color:#1f2937; margin-bottom:8px; text-align:center; transition:color 0.3s; }
+body.dark-mode .page-title { color:#e0e0e0; }
+.page-subtitle { color:#6b7280; text-align:center; margin-bottom:25px; font-size:0.95rem; transition:color 0.3s; }
+body.dark-mode .page-subtitle { color:#a0a0a0; }
+
+/* Player */
+.player-box { 
+  position:relative; 
+  width:100%; 
+  padding-top:56.25%; 
+  background:#000; 
+  overflow:hidden; 
+  cursor:pointer; 
+  border-radius:12px;
+  isolation:isolate;
+}
+body.dark-mode .player-box { background:#0a0a0a; }
+#videoPlayer { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:contain; background:#000; }
+@media (max-width:768px) {
+  .player-box { border-radius:8px; }
+}
+
+/* Fullscreen styles */
+.player-box:fullscreen,
+.player-box:-webkit-full-screen,
+.player-box:-moz-full-screen,
+.player-box:-ms-fullscreen {
+  width:100vw;
+  height:100vh;
+  max-width:100vw;
+  max-height:100vh;
+  padding-top:0 !important;
+  border-radius:0;
+}
+
+.player-box:fullscreen #videoPlayer,
+.player-box:-webkit-full-screen #videoPlayer,
+.player-box:-moz-full-screen #videoPlayer,
+.player-box:-ms-fullscreen #videoPlayer {
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+
+/* Specific styles for video when it is fullscreen on iOS */
+#videoPlayer:-webkit-full-screen {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.player-box:fullscreen .controls,
+.player-box:-webkit-full-screen .controls,
+.player-box:-moz-full-screen .controls,
+.player-box:-ms-fullscreen .controls {
+  bottom:50px;
+  opacity:1;
+  z-index:2147483647;
+}
+
+@media (max-width:768px) {
+  .player-box:fullscreen .controls,
+  .player-box:-webkit-full-screen .controls,
+  .player-box:-moz-full-screen .controls,
+  .player-box:-ms-fullscreen .controls {
+    bottom:20px;
+    gap:6px;
+  }
+ 
+  .player-box:fullscreen .control-btn,
+  .player-box:-webkit-full-screen .control-btn,
+  .player-box:-moz-full-screen .control-btn,
+  .player-box:-ms-fullscreen .control-btn {
+    width:40px;
+    height:40px;
+    font-size:16px;
+  }
+}
+
+.player-box:fullscreen #progressContainer,
+.player-box:-webkit-full-screen #progressContainer,
+.player-box:-moz-full-screen #progressContainer,
+.player-box:-ms-fullscreen #progressContainer {
+  bottom:10px;
+  z-index:2147483647;
+}
+
+.player-box:fullscreen #channelName,
+.player-box:-webkit-full-screen #channelName,
+.player-box:-moz-full-screen #channelName,
+.player-box:-ms-fullscreen #channelName {
+  top:10px;
+  left:10px;
+  z-index:2147483647;
+}
+
+.player-box:fullscreen #timeDisplay,
+.player-box:-webkit-full-screen #timeDisplay,
+.player-box:-moz-full-screen #timeDisplay,
+.player-box:-ms-fullscreen #timeDisplay {
+  bottom:18px;
+  right:15px;
+  z-index:2147483647;
+}
+
+.player-box:fullscreen #qualityMenu,
+.player-box:-webkit-full-screen #qualityMenu,
+.player-box:-moz-full-screen #qualityMenu,
+.player-box:-ms-fullscreen #qualityMenu {
+  bottom:100px;
+  right:10px;
+  z-index:2147483647;
+}
+
+/* Loader */
+#loader { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); z-index:100; visibility:hidden; }
+.loader-spin { border:4px solid rgba(255,255,255,0.3); border-top:4px solid #9333ea; border-radius:50%; width:50px; height:50px; animation:spin 1s linear infinite; }
+@keyframes spin { 100% {transform:rotate(360deg);} }
+
+/* --- NEW CONTROLS CSS --- */
+/* This is the main container for the new controls */
+.controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  /* Faded background like in the image */
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+  opacity: 1;
+  transition: opacity 0.4s, visibility 0.4s;
+  visibility: visible;
+  z-index: 20;
+  pointer-events: auto;
+}
+
+/* Hide controls when 'hidden' class is added */
+.controls.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* New button styles (replacing old blue circles) */
+.control-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0; /* Hide emoji text if it accidentally appears */
+  flex-shrink: 0; /* Prevent buttons from shrinking */
+  transition: transform 0.2s;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Style for SVGs inside the buttons */
+.control-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: white;
+  pointer-events: none; /* Make sure click goes to button */
+}
+
+.control-btn:hover {
+  transform: scale(1.1);
+  background: transparent; /* Override old hover */
+  box-shadow: none; /* Override old shadow */
+}
+
+/* Containers for left and right button groups */
+.v-left-controls, .v-right-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+/* --- End of NEW CONTROLS CSS --- */
+
+
+#channelName { 
+  position:absolute; 
+  top:10px; 
+  left:10px; 
+  background:rgba(59,130,246,0.95); 
+  color:white; 
+  padding:6px 12px; 
+  border-radius:8px; 
+  font-size:0.9rem; 
+  font-weight:600; 
+  z-index:25; 
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+  /* Added transitions to match controls */
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.4s, visibility 0.4s;
+}
+/* Added rule to hide channel name when it has .hidden class */
+#channelName.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+@media (max-width:768px) {
+  #channelName { font-size:0.75rem; padding:4px 8px; top:8px; left:8px; }
+}
+
+/* Quality menu */
+#qualityMenu { 
+  position:absolute; 
+  bottom: 55px; /* Positioned just above the control bar */
+  right: 12px; /* Aligned with right controls */
+  background:rgba(255,255,255,0.95); 
+  border-radius:10px; 
+  padding:8px; 
+  display:none; 
+  z-index:30; 
+  box-shadow:0 4px 12px rgba(0,0,0,0.2); 
+}
+body.dark-mode #qualityMenu { background:rgba(30,30,46,0.95); }
+#qualityMenu button { 
+  display:block; 
+  width:100%; 
+  padding:8px 14px; 
+  color:#1f2937; 
+  background:transparent; 
+  border:none; 
+  text-align:left; 
+  cursor:pointer; 
+  border-radius: 8px; /* Rounded corners for buttons */
+  margin-bottom:4px; 
+  font-weight: 600; /* Added font weight */
+  transition:all 0.3s; 
+  font-size:0.9rem;
+}
+body.dark-mode #qualityMenu button { color:#e0e0e0; }
+#qualityMenu button:hover { background:rgba(59,130,246,0.2); }
+#qualityMenu button.active-quality { background:#3b82f6; color:white; }
+@media (max-width:768px) {
+  #qualityMenu { 
+    bottom: 50px; /* Adjusted for mobile */
+    right: 8px; 
+    padding:6px; 
+  }
+  #qualityMenu button { padding:6px 10px; font-size:0.8rem; }
+}
+
+/* Progress bar */
+#progressContainer { 
+  position: relative;
+  flex-grow: 1; /* Take up remaining space */
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  cursor: pointer;
+  /* Removed old position:absolute */
+}
+#progressBar { 
+  width:0%; 
+  height:100%; 
+  background:#3b82f6; 
+  border-radius: 2px; /* Match container */
+}
+#progressHandle { 
+  position:absolute; 
+  top: 50%; /* Center vertically */
+  width:14px; 
+  height:14px; 
+  background:#fff; 
+  border-radius:50%; 
+  transform: translate(-50%, -50%); /* Center on the bar */
+  cursor:pointer; 
+  box-shadow:0 2px 6px rgba(0,0,0,0.3);
+}
+
+#timeDisplay { 
+  position: static; /* No longer absolute */
+  background: transparent; /* No black background */
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  flex-shrink: 0; /* Don't shrink */
+  /* Removed old z-index and bottom/right */
+}
+@media (max-width:768px) {
+  /* Reset old responsive styles */
+  #progressContainer { 
+    height: 4px; 
+    /* Remove old bottom/left/right */
+  }
+  #progressHandle { 
+    width: 12px; 
+    height: 12px; 
+    /* top: -4px; (removed) */
+  }
+  #timeDisplay { 
+    font-size: 11px; 
+    /* Remove old padding/bottom/right */
+  }
+  
+  /* New responsive styles for controls */
+  .controls {
+    gap: 8px;
+    padding: 6px 8px;
+  }
+  .control-btn {
+    width: 32px;
+    height: 32px;
+  }
+  .control-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+  .v-left-controls, .v-right-controls {
+    gap: 4px;
+  }
+}
+
+/* Channels Grid */
+#channelGrid { 
+  display:grid; 
+  grid-template-columns:repeat(auto-fill, minmax(80px, 1fr)); 
+  gap:15px; 
+  padding:20px; 
+  background:#f9fafb; 
+  border-radius:12px; 
+}
+@media (max-width:768px) {
+  #channelGrid { 
+    grid-template-columns:repeat(3, 1fr); 
+    gap:8px; 
+    padding:12px; 
+  }
+}
+body.dark-mode #channelGrid { background:rgba(20,20,35,0.8); }
+.channel-logo { width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px; cursor:pointer; transition:all 0.3s; border:3px solid transparent; background:white; padding:5px; }
+body.dark-mode .channel-logo { background:rgba(45,45,60,0.8); border-color:#4a4a5e; }
+body.dark-mode .channel-logo:hover { border-color:#3b82f6; }
+.channel-logo:hover { transform:translateY(-4px); box-shadow:0 6px 16px rgba(0,0,0,0.15); }
+.active-channel { border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,0.3); }
+
+.footer { text-align:center; padding:20px; color:#6b7280; font-size:0.9rem; border-top:1px solid #e5e7eb; transition:all 0.3s; }
+body.dark-mode .footer { color:#a0a0a0; border-top-color:#4a4a5e; }
+.footer-credit { margin-top:8px; font-size:0.85rem; word-break:break-word; overflow-wrap:break-word; }
+.footer-credit a { color:#0088cc; text-decoration:none; font-weight:600; }
+body.dark-mode .footer-credit a { color:#3b82f6; }
+
+.contact-btn { 
+  position:fixed; 
+  bottom:20px; 
+  right:20px; 
+  width:60px; 
+  height:60px; 
+  background:#0088cc; 
+  border-radius:50%; 
+  display:flex; 
+  align-items:center; 
+  justify-content:center; 
+  box-shadow:0 4px 12px rgba(0,136,204,0.4); 
+  cursor:pointer; 
+  transition:all 0.3s; 
+  z-index:1000;
+  text-decoration:none;
+  font-size:1.8rem;
+}
+.contact-btn:hover { transform:scale(1.1); box-shadow:0 6px 20px rgba(0,136,204,0.6); }
+@media (max-width:768px) {
+  .contact-btn { width:50px; height:50px; bottom:15px; right:15px; font-size:1.5rem; }
+}
+
+@media (max-width:768px) {
+  .header { padding:12px 14px; }
+  .page-title { font-size:1.35rem; margin-bottom:6px; }
+  .page-subtitle { font-size:0.82rem; margin-bottom:18px; }
+  .logo { width:32px; height:32px; }
+  .logo-text { font-size:0.95rem; }
+  .logo-section { gap:8px; }
+  .back-btn { padding:6px 12px; font-size:0.82rem; }
+  .theme-toggle { width:42px; height:22px; margin-right:6px; }
+  .theme-toggle::before { width:18px; height:18px; }
+  .theme-toggle.active::before { transform:translateX(20px); }
+  .content { padding:18px 12px; }
+  .player-box { border-radius:10px; }
+  .footer { padding:16px 12px; font-size:0.8rem; }
+  .footer-credit { font-size:0.78rem; }
+}
+  </style>
+</head>
+<body>
+  <div class="neon-bg"><div class="neon-circle"></div><div class="neon-circle"></div><div class="neon-circle"></div><div class="neon-circle"></div></div>
+  <div class="container">
+    <div class="header">
+      <div class="logo-section">
+        <img src="images/talha_logo.png" alt="TALHA HUB Logo" class="logo">
+        <div class="logo-text">TALHA HUB</div>
+      </div>
+      <div class="header-controls">
+        <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()"></div>
+        <a href="index.html" class="back-btn">← Back</a>
+      </div>
+    </div>
+
+    <div class="content">
+      <h1 class="page-title">📺 Zong TV</h1>
+      <p class="page-subtitle">Live TV streaming service</p>
+
+      <!-- ##### NEW PLAYER BOX HTML ##### -->
+      <div class="player-box" id="playerBox">
+        <!-- Added 'playsinline' for iOS compatibility -->
+        <video id="videoPlayer" class="w-full h-full" autoplay poster="images/talhatv.jpg" playsinline></video>
+
+        <div id="loader">
+          <div class="loader-spin"></div>
+        </div>
+
+        <!-- NEW HTML STRUCTURE FOR CONTROLS -->
+        <div id="controls" class="controls">
+          <div class="v-left-controls">
+            <button id="prevBtn" class="control-btn"></button>
+            <button id="playBtn" class="control-btn"></button>
+            <button id="nextBtn" class="control-btn"></button>
+            <button id="muteBtn" class="control-btn"></button>
+          </div>
+          
+          <!-- Progress bar and handle are now inside the main controls div -->
+          <!-- Added back seekVideo(event) from your original file -->
+          <div id="progressContainer" onclick="seekVideo(event)">
+            <div id="progressBar"></div>
+            <div id="progressHandle"></div>
+          </div>
+
+          <!-- Time display is also inside -->
+          <div id="timeDisplay">00:00 / 00:00</div>
+          
+          <div class="v-right-controls">
+            <button id="qualityBtn" class="control-btn"></button>
+            <!-- Size button is removed as per your last request -->
+            <button id="fsBtn" class="control-btn"></button>
+          </div>
+        </div>
+        <!-- END OF NEW HTML STRUCTURE -->
+
+        <div id="qualityMenu"></div>
+        <div id="channelName">Select a channel</div>
+      </div>
+      <!-- ##### END OF NEW PLAYER BOX HTML ##### -->
+
+
+      <div id="channelGrid">
+        <!-- ZONG TV CHANNELS (Unchanged) -->
+       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4atGM34rXtNQzx2wCnQQVzGSjU805qIOdFw&usqp=CAU" 
+     onclick="playChannel(this,'Saudi Quran','https://vodzong.mjunoon.tv:8087/streamtest/SaudiQuran-142/playlist.m3u8')" 
+     alt="Saudi Quran" class="channel-logo">
+
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGupfsMkkP5X3iP6XZx6yi2LSzq8_6TIOC-w&usqp=CAU" 
+     onclick="playChannel(this,'Saudi Sunnah','https://vodzong.mjunoon.tv:8087/streamtest/SaudiSunnah-141/live/141M/chunks.m3u8')" 
+     alt="Saudi Sunnah" class="channel-logo">
+
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRuLdTFn4TdP5-rF7YyPXTvOKguRsWJ0q0-cEDZUJ1gKGIl85TEpTiYSx0&s=10" 
+     onclick="playChannel(this,'Madani Tv','https://vodzong.mjunoon.tv:8087/streamtest/Madni-121/playlist.m3u8')" 
+     alt="Madani Tv" class="channel-logo">
+
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqsvRHu6ZhAQdM0FE5MRF4Goto2-mcA6K4sw&usqp=CAU" 
+     onclick="playChannel(this,'PTV Home','https://vodzong.mjunoon.tv:8087/streamtest/ptv-home-174/playlist.m3u8')" 
+     alt="PTV Home" class="channel-logo">
+
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQIKXUbh96lR2jrQ90lzfteBQuVL8TROFk0w&usqp=CAU" 
+     onclick="playChannel(this,'Bol TV','https://vodzong.mjunoon.tv:8087/streamtest/bolnent-159-4/playlist.m3u8')" 
+     alt="Bol TV" class="channel-logo">
+
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgK3r8pJhDdYfdu-8lGclYbvW6W4wB9lNqF-1MvwY05aPkBrB_1zigQHA&s=10" 
+     onclick="playChannel(this,'Bol News','https://vodzong.mjunoon.tv:8087/streamtest/bolnews-159-3/playlist.m3u8')" 
+     alt="Bol News" class="channel-logo">
+
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwagVGRGWczQgdzNC-RdEl1t0eF_C8_yzh-o-9WlBh7yfFR6ovB8AIKi61&s=10" 
+     onclick="playChannel(this,'Express News','https://vodzong.mjunoon.tv:8087/streamtest/ExpressNews-155/playlist.m3u8')" 
+     alt="Express News" class="channel-logo">
+
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCfJKkUhCHVllOSPBVjwCFpPn9b-P_of0kjA&usqp=CAU" 
+     onclick="playChannel(this,'Express Ent','https://vodzong.mjunoon.tv:8087/streamtest/EXP-ENT-159-1/playlist.m3u8')" 
+     alt="Express Ent" class="channel-logo">
+
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnWayKJ8devGcnrbcnfboF1RETCKoWr2aFjP-1W8iw-1p4TlYmZ6bQwnlG&s=10" 
+     onclick="playChannel(this,'Jalwa','https://vodzong.mjunoon.tv:8087/streamtest/JalwaTV-135/live/135M/chunks.m3u8')" 
+     alt="Jalwa" class="channel-logo">
+
+  <img src="http://8xm.tv/wp-content/uploads/2019/02/512X512p.png" 
+       onclick="playChannel(this,'8XM','https://vodzong.mjunoon.tv:8087/streamtest/8XM-131/playlist.m3u8')" 
+       alt="8XM" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5pVm-0Pp3hKucynZctFMIeh985gMe84RR3A&usqp=CAU" 
+       onclick="playChannel(this,'Oxygen Tv','https://vodzong.mjunoon.tv:8087/streamtest/132M/playlist.m3u8')" 
+       alt="Oxygen Tv" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJvGC860EQrod1hNmPrj9gyzoub5Qgg2M0l_12dQS18O914xV-yjE1-zHH&s=10" 
+       onclick="playChannel(this,'Geo Tv','https://vodzong.mjunoon.tv:8087/streamtest/geoent-122/playlist.m3u8')" 
+       alt="Geo Tv" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTvmQmYYa9mh7dXePN1DEBpawvKb2Jcd0Shw&usqp=CAU" 
+       onclick="playChannel(this,'Geo News','https://vodzong.mjunoon.tv:8087/streamtest/geonews-137/playlist.m3u8')" 
+       alt="Geo News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpxnA2_kHg8QgWos0GjlvCvENmdUgQhhTO1hIAwqSOE4Txfibg0oCxaq4&s=10" 
+       onclick="playChannel(this,'Urdu 1','https://vodzong.mjunoon.tv:8087/streamtest/Urdu1-158-4/playlist.m3u8')" 
+       alt="Urdu 1" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQdzutge89wiGQnXi2_-xgth7iKTQiHQS1ZzQ&usqp=CAU" 
+       onclick="playChannel(this,'A Plus','https://vodzong.mjunoon.tv:8087/streamtest/APlus-118/playlist.m3u8')" 
+       alt="A Plus" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTUKeKZG1vzTQk_qslUAkxCz_KwQo4bXdFL7d1OFpH6-XkZNk0&s" 
+       onclick="playChannel(this,'AAJ Entertainment','https://vodzong.mjunoon.tv:8087/streamtest/AAJENT-125/playlist.m3u8')" 
+       alt="AAJ Entertainment" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTw3XifA6zKwga4pcAvvSHEi4Jx-vMLbIBfjBijrZiG1hhVwtxJES73OqXk&s=10" 
+       onclick="playChannel(this,'AAJ News','https://vodzong.mjunoon.tv:8087/streamtest/AAJNews-124/playlist.m3u8')" 
+       alt="AAJ News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGsxWjXyJ9Nxvf78Le-W1jkerBBuztBahqs6VO3g8QZPVJC_LKagkmBYU&s=10" 
+       onclick="playChannel(this,'Sindh TV','https://vodzong.mjunoon.tv:8087/streamtest/SindhTV-136-1/live/136-1M/chunks.m3u8')" 
+       alt="Sindh TV" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTElWZUWbSKUaT9_4ZMQ_6rH2n7qzcRCsmrgw&usqp=CAU" 
+       onclick="playChannel(this,'Sindh News','https://vodzong.mjunoon.tv:8087/streamtest/SindhNews-136-2/playlist.m3u8')" 
+       alt="Sindh News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1Vbtybwih6wSaFraEAU6ym_-jyUXoz9qBYA&usqp=CAU" 
+       onclick="playChannel(this,'KTN TV','https://vodzong.mjunoon.tv:8087/streamtest/KTN-149/playlist.m3u8')" 
+       alt="KTN TV" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqACj5a67chU59ADkTM8gApWbYjQjKyDzHEA&usqp=CAU" 
+       onclick="playChannel(this,'KTN News','https://vodzong.mjunoon.tv:8087/streamtest/KTNNews-151/playlist.m3u8')" 
+       alt="KTN News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7a5ORjEqgt5veU6e0ltVmk_IZuov34IVWN4DwQELwboZIEJc&s" 
+       onclick="playChannel(this,'Kashish TV','https://vodzong.mjunoon.tv:8087/streamtest/Kashish-150/playlist.m3u8')" 
+       alt="Kashish TV" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGw2NFUe2PRUaUZ5zPFexMWsJdD5XdTJhcUg&usqp=CAU" 
+       onclick="playChannel(this,'Awaz TV','https://vodzong.mjunoon.tv:8087/streamtest/AWAZ-120/playlist.m3u8')" 
+       alt="Awaz TV" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9ItuK1wSgi8G2Cluif09aNKdbxSYa5E1pYJw66W6RDjck2-KfHIlBAAM&s=10" 
+       onclick="playChannel(this,'Time News','https://vodzong.mjunoon.tv:8087/streamtest/time-news-172/playlist.m3u8')" 
+       alt="Time News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsltTCnRhJul3X7RgioroIN-fkR6G9nh7z3g&usqp=CAU" 
+       onclick="playChannel(this,'Play TV','https://vodzong.mjunoon.tv:8087/streamtest/playtv-154/playlist.m3u8')" 
+       alt="Play TV" class="channel-logo">
+
+  <img src="https://upload.wikimedia.org/wikipedia/en/c/c3/Abb_Tak_news_logo.png" 
+       onclick="playChannel(this,'AbbTak News','https://vodzong.mjunoon.tv:8087/streamtest/AbbTakNews-133/live/133H/chunks.m3u8')" 
+       alt="AbbTak News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQxegS2MnXuq9RiMdfxqW8rfqlyFKTr5HwMgg&usqp=CAU" 
+       onclick="playChannel(this,'Samaa TV','https://vodzong.mjunoon.tv:8087/streamtest/Samaa-157-3/playlist.m3u8')" 
+       alt="Samaa TV" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrs-9thVXyGDeokLLg9jJeGGRtg3P7WdWMzg&usqp=CAU" 
+       onclick="playChannel(this,'Dawn News','https://vodzong.mjunoon.tv:8087/streamtest/DawnNews-152/playlist.m3u8')" 
+       alt="Dawn News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSkYgs_Akm-8OaExLxX2Jk1Vm3VKV6zTJake-vDe3Nho7vfL1C2zHFuEDDN&s=10" 
+       onclick="playChannel(this,'Hum TV','https://vodzong.mjunoon.tv:8087/streamtest/Hum-TV-136-3/playlist.m3u8')" 
+       alt="Hum TV" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmsgdiQC-oH_neSmr9rn4Q64tmaPXjW_pCeg&usqp=CAU" 
+       onclick="playChannel(this,'Hum News','https://vodzong.mjunoon.tv:8087/streamtest/Hum-news-80/playlist.m3u8')" 
+       alt="Hum News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTk5mYNrIsFgaQacU64xg6TXvnHdDrhK_s1Tg&usqp=CAU" 
+       onclick="playChannel(this,'Dunya News','https://vodzong.mjunoon.tv:8087/streamtest/DunyaNews-113/playlist.m3u8')" 
+       alt="Dunya News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZYOj6PnXQCNoA2S1vK79MpuGOP5Y3ow4IA7kwj3yeNqdgrrz9M9l_QEA&s=10" 
+       onclick="playChannel(this,'See TV','https://vodzong.mjunoon.tv:8087/streamtest/SeeTV-156/playlist.m3u8')" 
+       alt="See TV" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfsji6pOJevIdHmug5J2ppCxB40sBaCEqfqcnNo06Xrzr-uHNvKA6BoEk&s=10" 
+       onclick="playChannel(this,'Baby TV','https://vodzong.mjunoon.tv:8087/streamtest/babytv-77/playlist.m3u8')" 
+       alt="Baby TV" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOoWEUxqSt1T1KHUwj-3S_U_TlAZ-JtR1ujQ&usqp=CAU" 
+       onclick="playChannel(this,'Champion TV','https://vodzong.mjunoon.tv:8087/streamtest/champion-177/playlist.m3u8')" 
+       alt="Champion TV" class="channel-logo">
+
+  <img src="https://i1.wp.com/tvtonight.com.au/wp-content/uploads/2013-01-01_1835.jpg?w=290&ssl=1" 
+       onclick="playChannel(this,'Movie One','https://vodzong.mjunoon.tv:8087/streamtest/movie-one-176/playlist.m3u8')" 
+       alt="Movie One" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQN4ty614iusgACZsNv19qUIaOWQfjC_svwTg&usqp=CAU" 
+       onclick="playChannel(this,'TV1','https://vodzong.mjunoon.tv:8087/streamtest/TV1-129/playlist.m3u8')" 
+       alt="TV1" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6nNDOHnQcTUrc927J8WJCKguprLBriecThA&usqp=CAU" 
+       onclick="playChannel(this,'WASEB','https://vodzong.mjunoon.tv:8087/streamtest/WASEB-130/playlist.m3u8')" 
+       alt="WASEB" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3HxB_nRvvD0KireVtBymmZD-ZScTmYwQSow&usqp=CAU" 
+       onclick="playChannel(this,'Roz News','https://vodzong.mjunoon.tv:8087/streamtest/RozNews-139/playlist.m3u')" 
+       alt="Roz News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZdvN4yiS31fNgC1fv48P-a7IXWi6MIe7yAQ&usqp=CAU" 
+       onclick="playChannel(this,'VSH News','https://vodzong.mjunoon.tv:8087/streamtest/VSHTV-122/playlist.m3u8')" 
+       alt="VSH News" class="channel-logo">
+
+  <img src="https://pbs.twimg.com/media/EwAo8HrXMAITpUb?format=jpg&name=360x360" 
+       onclick="playChannel(this,'Channel 5','https://vodzong.mjunoon.tv:8087/streamtest/Channel5-159-4/live/159-4M/chunks.m3u8')" 
+       alt="Channel 5" class="channel-logo">
+
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Deutsche_Welle_symbol_2012.svg/1200px-Deutsche_Welle_symbol_2012.svg.png" 
+       onclick="playChannel(this,'DW','https://vodzong.mjunoon.tv:8087/streamtest/DW-136-4A/playlist.m3u8')" 
+       alt="DW" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPVRFCHHW_gH-9LSOuxX2zcLYQS3xQVXuTGw&usqp=CAU" 
+       onclick="playChannel(this,'Cartoon Network','https://vodzong.mjunoon.tv:8087/streamtest/cartoon-network-87/playlist.m3u8')" 
+       alt="Cartoon Network" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTq40dDTWvE6YwjbB3LSdTapLtAbVtdRoLyiw&usqp=CAU" 
+       onclick="playChannel(this,'Aruj TV','https://vodzong.mjunoon.tv:8087/streamtest/ArujTV-117/playlist.m3u8')" 
+       alt="Aruj TV" class="channel-logo">
+
+  <img src="https://pbs.twimg.com/profile_images/973580855317708801/0AJ7v7He.jpg" 
+       onclick="playChannel(this,'A1 News','https://vodzong.mjunoon.tv:8087/streamtest/A1-184/playlist.m3u8')" 
+       alt="A1 News" class="channel-logo">
+
+  <img src="https://pbs.twimg.com/media/EwAp_IFXIAEs3i3?format=jpg&name=240x240" 
+       onclick="playChannel(this,'K21 News','https://vodzong.mjunoon.tv:8087/streamtest/K21News-116/playlist.m3u8')" 
+       alt="K21 News" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9P-kqdcLO7biPX520IsodHU9A6LeqXO0F2w&usqp=CAU" 
+       onclick="playChannel(this,'24 HD','https://vodzong.mjunoon.tv:8087/streamtest/24HD-146/playlist.m3u8')" 
+       alt="24 HD" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRF_NuLRli6VMhGWfP4NpFPLWWoiCpz4aasQA&usqp=CAU" 
+       onclick="playChannel(this,'Anim Plan','https://vodzong.mjunoon.tv:8087/streamtest/anim-plan-179/live/179M/chunks.m3u8')" 
+       alt="Anim Plan" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWrOWoWUoQhKJrM-fmzeYa4FM_zgMZECXBaw&usqp=CAU" 
+       onclick="playChannel(this,'NEWS1','https://vodzong.mjunoon.tv:8087/streamtest/NEWS1-128/playlist.m3u8')" 
+       alt="NEWS1" class="channel-logo">
+
+  <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Public-News-Logo-1.jpg" 
+       onclick="playChannel(this,'Public News','https://vodzong.mjunoon.tv:8087/streamtest/public-115/playlist.m3u8')" 
+       alt="Public News" class="channel-logo">
+
+  <img src="https://upload.wikimedia.org/wikipedia/en/a/a6/Neo_News_logo.jpg" 
+       onclick="playChannel(this,'Neo News','https://vodzong.mjunoon.tv:8087/streamtest/Neo-110/playlist.m3u8')" 
+       alt="Neo News" class="channel-logo">
+
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/CNN.svg/1200px-CNN.svg.png" 
+       onclick="playChannel(this,'CNN','https://vodzong.mjunoon.tv:8087/streamtest/cnn-86/playlist.m3u8')" 
+       alt="CNN" class="channel-logo">
+
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6dtEgQit4hjIDU8JUzhfFAhgjiXyG0Dw_Gg&usqp=CAU" 
+       onclick="playChannel(this,'Capital TV','https://vodzong.mjunoon.tv:8087/streamtest/capitaltv-111/playlist.m3u8')" 
+       alt="Capital TV" class="channel-logo">
+
+      </div>
+    </div>
+
+    <div class="footer">
+      All rights reserved by Talha 💯
+      <div class="footer-credit">Redesign by <a href="https://t.me/MIRHADII07" target="_blank">@MIRHADII07</a></div>
+    </div>
+  </div>
+
+  <!-- Contact Us Button -->
+<a href="https://t.me/Op_talha_07" target="_blank" class="contact-btn">
+  📞
+</a>
+
+  <script>
+/* Theme Toggle */
+function toggleTheme() {
+  document.body.classList.toggle('dark-mode');
+  document.getElementById('themeToggle').classList.toggle('active');
+  localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+}
+
+/* Player & Controls */
+const video = document.getElementById('videoPlayer');
+const loader = document.getElementById('loader');
+const channelName = document.getElementById('channelName');
+const controls = document.getElementById('controls');
+const playBtn = document.getElementById('playBtn');
+const muteBtn = document.getElementById('muteBtn');
+const progressBar = document.getElementById('progressBar');
+const progressHandle = document.getElementById('progressHandle');
+const timeDisplay = document.getElementById('timeDisplay');
+const qualityBtn = document.getElementById('qualityBtn');
+const qualityMenu = document.getElementById('qualityMenu');
+
+/* --- NEW SVG ICONS --- */
+const ICON_PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+const ICON_VOLUME = '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.3 2.5-4.02z"/></svg>';
+const ICON_MUTE = '<svg viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>';
+const ICON_PREV = '<svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>';
+const ICON_NEXT = '<svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zm-3.5 6l-8.5 6V6z"/></svg>';
+const ICON_SETTINGS = '<svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17-.59-1.69.98l-2.49-1c-.23-.08-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.08.49 0 .61.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>';
+const ICON_FULLSCREEN = '<svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zM5 10h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>';
+/* --- END SVG ICONS --- */
+
+let hls;
+let currentChannel = '';
+let currentUrl = '';
+let allChannels = [];
+
+// Auto-play first channel on page load
+window.addEventListener('DOMContentLoaded', () => {
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark-mode');
+    document.getElementById('themeToggle').classList.add('active');
+  }
+  
+  initControls(); // Call this to load icons when page loads
+  allChannels = Array.from(document.querySelectorAll('.channel-logo'));
+  
+  // --- AUTOPLAY ---
+  // Mute video element initially to allow autoplay
+  video.muted = true;
+  muteBtn.innerHTML = ICON_MUTE; // Update icon to show muted state
+
+  const firstChannel = allChannels[0];
+  if (firstChannel) {
+    setTimeout(() => {
+      firstChannel.click();
+    }, 1000);
+  }
+  // --- END AUTOPLAY ---
+});
+
+function playChannel(img, name, url) {
+  currentChannel = name;
+  currentUrl = url;
+  channelName.textContent = name;
+ 
+  document.querySelectorAll('.channel-logo').forEach(ch => ch.classList.remove('active-channel'));
+  img.classList.add('active-channel');
+ 
+  loader.style.visibility = 'visible';
+ 
+  if (hls) { hls.destroy(); }
+ 
+  if (Hls.isSupported()) {
+    hls = new Hls();
+    hls.loadSource(url);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      video.play();
+      loader.style.visibility = 'hidden';
+      updateQualityMenu();
+      playBtn.innerHTML = ICON_PAUSE; /* Update icon on play */
+      muteBtn.innerHTML = video.muted ? ICON_MUTE : ICON_VOLUME; /* Update icon on play */
+    });
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = url;
+    video.addEventListener('loadedmetadata', () => {
+      video.play();
+      loader.style.visibility = 'hidden';
+      playBtn.innerHTML = ICON_PAUSE; /* Update icon on play */
+      muteBtn.innerHTML = video.muted ? ICON_MUTE : ICON_VOLUME; /* Update icon on play */
+    });
+  }
+}
+
+// Added updateQualityMenu function
+function updateQualityMenu() {
+  if (!hls || !hls.levels || hls.levels.length === 0) return;
+  
+  qualityMenu.innerHTML = '';
+  hls.levels.forEach((level, index) => {
+    const btn = document.createElement('button');
+    btn.textContent = `${level.height}p`;
+    btn.onclick = () => {
+      hls.currentLevel = index;
+      qualityMenu.style.display = 'none';
+      updateQualityMenu();
+    };
+    if (index === hls.currentLevel) {
+      btn.classList.add('active-quality');
+    }
+    qualityMenu.appendChild(btn);
+  });
+}
+
+// Button click handlers with event stopping
+document.getElementById('prevBtn').onclick = (e) => {
+  e.stopPropagation();
+  prevChannel();
+};
+
+document.getElementById('nextBtn').onclick = (e) => {
+  e.stopPropagation();
+  nextChannel();
+};
+
+playBtn.onclick = (e) => {
+  e.stopPropagation();
+  if (video.paused) {
+    video.play();
+    playBtn.innerHTML = ICON_PAUSE;
+  } else {
+    video.pause();
+    playBtn.innerHTML = ICON_PLAY;
+  }
+};
+
+muteBtn.onclick = (e) => {
+  e.stopPropagation();
+  video.muted = !video.muted;
+  muteBtn.innerHTML = video.muted ? ICON_MUTE : ICON_VOLUME;
+};
+
+document.getElementById('fsBtn').onclick = (e) => {
+  e.stopPropagation();
+  
+  const playerBox = document.getElementById('playerBox'); 
+  const video = document.getElementById('videoPlayer'); // Get video element
+
+  if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+    // Enter fullscreen
+    
+    // --- FIX: TRY IOS/SAFARI VIDEO FULLSCREEN FIRST ---
+    if (video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen(); // This is specific to iOS
+    } 
+    // --- THEN TRY CONTAINER FULLSCREEN FOR OTHERS ---
+    else if (playerBox.requestFullscreen) { // Standard
+      playerBox.requestFullscreen();
+    } else if (playerBox.webkitRequestFullscreen) { // Desktop Safari/Chrome
+      playerBox.webkitRequestFullscreen();
+    } else if (playerBox.mozRequestFullScreen) { // Firefox
+      playerBox.mozRequestFullScreen();
+    } else if (playerBox.msRequestFullscreen) { // IE/Edge
+      playerBox.msRequestFullscreen();
+    }
+  } else {
+    // Exit fullscreen
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+  }
+};
+
+// sizeBtn removed
+/*
+let sizeMode = 'contain';
+document.getElementById('sizeBtn').onclick = (e) => {
+  e.stopPropagation();
+  sizeMode = sizeMode === 'contain' ? 'cover' : 'contain';
+  video.style.objectFit = sizeMode;
+};
+*/
+
+qualityBtn.onclick = (e) => {
+  e.stopPropagation();
+  qualityMenu.style.display = qualityMenu.style.display === 'block' ? 'none' : 'block';
+};
+
+// Toggling functions removed, logic is inline above
+
+function toggleControls(e) {
+  // Only toggle if clicking on video or player box, not on controls
+  if (e && (e.target.classList.contains('control-btn') || e.target.closest('.controls') || e.target.closest('#qualityMenu'))) {
+    return;
+  }
+  controls.classList.toggle('hidden');
+  channelName.classList.toggle('hidden'); // This line hides/shows channel name
+}
+
+// Old control toggling logic removed
+
+// MODIFIED: This is now the main click listener to toggle controls
+document.getElementById('playerBox').addEventListener('click', function(e) {
+  // The toggleControls function will handle checking if the click was on a button
+  toggleControls(e);
+});
+
+function seekVideo(event) {
+  // Added check for video.duration to prevent NaN errors
+  if (!video.duration) return; 
+  const rect = event.currentTarget.getBoundingClientRect();
+  const pos = (event.clientX - rect.left) / rect.width;
+  video.currentTime = pos * video.duration;
+}
+
+function prevChannel() {
+  const currentIndex = allChannels.findIndex(ch => ch.classList.contains('active-channel'));
+  const prevIndex = (currentIndex - 1 + allChannels.length) % allChannels.length;
+  allChannels[prevIndex].click();
+}
+
+function nextChannel() {
+  const currentIndex = allChannels.findIndex(ch => ch.classList.contains('active-channel'));
+  const nextIndex = (currentIndex + 1) % allChannels.length;
+  allChannels[nextIndex].click();
+}
+
+video.addEventListener('timeupdate', () => {
+  if (video.duration) {
+    const percent = (video.currentTime / video.duration) * 100;
+    progressBar.style.width = percent + '%';
+    progressHandle.style.left = percent + '%';
+    const current = formatTime(video.currentTime);
+    const total = formatTime(video.duration);
+    timeDisplay.textContent = `${current} / ${total}`;
+  }
+});
+
+function formatTime(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  return h > 0 ? `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}` : `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+// Function to set initial icons on page load
+function initControls() {
+  playBtn.innerHTML = ICON_PLAY;
+  muteBtn.innerHTML = ICON_VOLUME;
+  document.getElementById('prevBtn').innerHTML = ICON_PREV;
+  document.getElementById('nextBtn').innerHTML = ICON_NEXT;
+  qualityBtn.innerHTML = ICON_SETTINGS;
+  document.getElementById('fsBtn').innerHTML = ICON_FULLSCREEN;
+}
+  </script>
+</body>
+</html>
+
