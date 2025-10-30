@@ -13,147 +13,620 @@
       font-family: 'Poppins', sans-serif;
     }
 
+    /* Loading Animation */
+    #pageLoader {position:fixed;top:0;left:0;width:100%;height:100%;background:#1f2937;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;transition:opacity 0.5s ease, visibility 0.5s ease;}
+    #pageLoader.hidden {opacity:0;visibility:hidden;}
+    .loader-logo {width:70px;height:70px;border-radius:50%;animation:pulse 1.5s ease-in-out infinite;}
+    @keyframes pulse {0%, 100% {transform:scale(1);opacity:1;}50% {transform:scale(1.1);opacity:0.8;}}
+    .loader-spinner {margin-top:25px;width:50px;height:50px;position:relative;}
+    .loader-spinner::before,.loader-spinner::after {content:'';position:absolute;width:100%;height:100%;border-radius:50%;border:3px solid transparent;border-top-color:#3b82f6;}
+    .loader-spinner::before {animation:spin 1s linear infinite;}
+    .loader-spinner::after {border-top-color:#10b981;animation:spin 1.5s linear infinite reverse;}
+    @keyframes spin {to {transform:rotate(360deg);}}
+
     body {
-      background: radial-gradient(circle at top left, #190033, #000010);
-      color: #fff;
       min-height: 100vh;
+      background: #f3f4f6;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+      padding-top: 40px;
+      position: relative;
+      overflow-y: auto;
+      overflow-x: hidden;
+      transition: background 0.3s ease;
+    }
+
+    body.dark-mode {
+      background: #1f2937;
+    }
+
+    /* Animated Neon Background */
+    .neon-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .neon-circle {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.4;
+      animation: float 20s infinite ease-in-out;
+    }
+
+    .neon-circle:nth-child(1) {
+      width: 300px;
+      height: 300px;
+      background: linear-gradient(45deg, #ff006e, #8338ec);
+      top: -100px;
+      left: -100px;
+      animation-duration: 25s;
+      animation-delay: 0s;
+    }
+
+    .neon-circle:nth-child(2) {
+      width: 250px;
+      height: 250px;
+      background: linear-gradient(45deg, #06ffa5, #00d9ff);
+      top: 50%;
+      right: -100px;
+      animation-duration: 30s;
+      animation-delay: -5s;
+    }
+
+    .neon-circle:nth-child(3) {
+      width: 350px;
+      height: 350px;
+      background: linear-gradient(45deg, #ffbe0b, #fb5607);
+      bottom: -150px;
+      left: 20%;
+      animation-duration: 35s;
+      animation-delay: -10s;
+    }
+
+    .neon-circle:nth-child(4) {
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(45deg, #7209b7, #3a0ca3);
+      top: 20%;
+      right: 30%;
+      animation-duration: 28s;
+      animation-delay: -15s;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translate(0, 0) rotate(0deg);
+      }
+      25% {
+        transform: translate(100px, 100px) rotate(90deg);
+      }
+      50% {
+        transform: translate(-50px, 150px) rotate(180deg);
+      }
+      75% {
+        transform: translate(150px, -50px) rotate(270deg);
+      }
+    }
+
+    body.dark-mode .neon-circle {
+      opacity: 0.3;
+      filter: blur(80px);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+      transition: all 0.3s ease;
       display: flex;
       flex-direction: column;
+    }
+
+    body.dark-mode .container {
+      background: rgba(30, 30, 46, 0.95);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        min-height: calc(100vh - 40px);
+      }
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: flex-start;
-      padding: 30px 15px 80px;
+      padding: 20px 30px;
+      border-bottom: 1px solid #e5e7eb;
+      transition: border-color 0.3s ease;
     }
 
-    img.logo {
-      width: 110px;
-      height: 110px;
+    body.dark-mode .header {
+      border-bottom-color: #4a4a5e;
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    .logo-text {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #1f2937;
+      transition: color 0.3s ease;
+    }
+
+    body.dark-mode .logo-text {
+      color: #e0e0e0;
+    }
+
+    .theme-toggle {
+      width: 50px;
+      height: 26px;
+      background: #6b7280;
+      border-radius: 13px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      margin-right: 10px;
+    }
+
+    .theme-toggle.active {
+      background: #3b82f6;
+    }
+
+    .theme-toggle::before {
+      content: '';
+      position: absolute;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
-      margin-top: 10px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 20px #00ffff;
+      background: white;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.3s ease;
     }
 
-    h1 {
-      font-size: 1.6em;
-      color: #00ffff;
-      text-shadow: 0 0 10px #00ffff;
+    .theme-toggle.active::before {
+      transform: translateX(24px);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .back-btn {
+      padding: 8px 16px;
+      background: #6b7280;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .back-btn:hover {
+      background: #4b5563;
+      transform: translateY(-2px);
+    }
+
+    .content {
+      padding: 30px;
+      flex: 1;
+    }
+
+    .page-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 8px;
+      text-align: center;
+      transition: color 0.3s ease;
+    }
+
+    body.dark-mode .page-title {
+      color: #e0e0e0;
+    }
+
+    .page-subtitle {
+      color: #6b7280;
+      text-align: center;
+      margin-bottom: 25px;
+      font-size: 0.9rem;
+      transition: color 0.3s ease;
+    }
+
+    body.dark-mode .page-subtitle {
+      color: #a0a0a0;
+    }
+
+    .form-group {
       margin-bottom: 20px;
     }
 
-    .card {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(0,255,255,0.3);
-      border-radius: 15px;
-      padding: 20px;
-      width: 100%;
-      max-width: 380px;
-      box-shadow: 0 0 20px rgba(0,255,255,0.2);
+    .form-label {
+      display: block;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      transition: color 0.3s ease;
+    }
+
+    body.dark-mode .form-label {
+      color: #c0c0c0;
     }
 
     input {
       width: 100%;
-      padding: 12px;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
       border-radius: 10px;
-      border: none;
+      font-size: 1rem;
       outline: none;
-      background: rgba(0,0,0,0.4);
-      color: #fff;
-      font-size: 1em;
-      margin: 10px 0;
-      text-align: center;
-      box-shadow: inset 0 0 10px rgba(0,255,255,0.4);
+      transition: all 0.3s ease;
+      background: #f9fafb;
+      color: #1f2937;
+    }
+
+    body.dark-mode input {
+      background: rgba(45, 45, 60, 0.8);
+      border-color: #4a4a5e;
+      color: #e0e0e0;
+    }
+
+    body.dark-mode input:focus {
+      border-color: #3b82f6;
+      background: rgba(50, 50, 70, 0.9);
+    }
+
+    input:focus {
+      border-color: #3b82f6;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
 
     button {
       width: 100%;
-      background: linear-gradient(90deg, #00ffff, #0066ff);
+      padding: 12px;
       border: none;
       border-radius: 10px;
-      padding: 12px;
-      color: #000;
+      font-size: 1rem;
       font-weight: 600;
-      font-size: 1em;
       cursor: pointer;
-      margin-top: 10px;
-      transition: all 0.3s;
+      transition: all 0.3s ease;
+      margin-bottom: 10px;
     }
 
-    button:hover {
-      transform: scale(1.03);
-      box-shadow: 0 0 20px #00ffff;
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    #otpStatus {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      text-align: center;
+      transition: color 0.3s ease;
+    }
+
+    body.dark-mode #otpStatus {
+      color: #c0c0c0;
     }
 
     #responseBlock {
       display: none;
-      margin-top: 15px;
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
     }
 
     #responseMsg.success {
-      color: #00ffcc;
-      text-shadow: 0 0 10px #00ffff;
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #10b981;
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    body.dark-mode #responseMsg.success {
+      background: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+      border-color: #10b981;
     }
 
     #responseMsg.error {
-      color: #ff4444;
-      text-shadow: 0 0 10px #ff4444;
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #ef4444;
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    body.dark-mode #responseMsg.error {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border-color: #ef4444;
     }
 
     .loader {
       display: inline-block;
       width: 16px;
       height: 16px;
-      border: 3px solid #00ffff;
+      border: 3px solid #3b82f6;
       border-top-color: transparent;
       border-radius: 50%;
-      animation: spin 0.9s linear infinite;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
     }
 
     @keyframes spin {
-      from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
 
     .footer {
-      position: fixed;
-      bottom: 15px;
       text-align: center;
-      color: #00ffff;
-      font-size: 0.9em;
+      padding: 20px;
+      color: #6b7280;
+      font-size: 0.9rem;
+      border-top: 1px solid #e5e7eb;
+      transition: all 0.3s ease;
     }
 
-    .back-home {
-      margin-top: 25px;
-      background: linear-gradient(90deg, #ff0099, #ff6600);
-      color: #fff;
+    body.dark-mode .footer {
+      color: #a0a0a0;
+      border-top-color: #4a4a5e;
+    }
+
+    .contact-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background: #0088cc;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 136, 204, 0.4);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      text-decoration: none;
+      font-size: 1.8rem;
+    }
+
+    .contact-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0, 136, 204, 0.6);
+    }
+
+    .footer-credit {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .footer-credit a {
+      color: #0088cc;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .footer-credit a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      .container {
+        border-radius: 16px;
+      }
+
+      .header {
+        padding: 12px 14px;
+      }
+
+      .content {
+        padding: 20px 14px;
+      }
+
+      .page-title {
+        font-size: 1.35rem;
+        margin-bottom: 6px;
+      }
+
+      .page-subtitle {
+        font-size: 0.82rem;
+        margin-bottom: 18px;
+      }
+
+      .btn-group {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .logo {
+        width: 32px;
+        height: 32px;
+      }
+
+      .logo-text {
+        font-size: 0.95rem;
+      }
+
+      .logo-section {
+        gap: 8px;
+      }
+
+      .back-btn {
+        padding: 6px 12px;
+        font-size: 0.82rem;
+      }
+
+      .theme-toggle {
+        width: 42px;
+        height: 22px;
+        margin-right: 6px;
+      }
+
+      .theme-toggle::before {
+        width: 18px;
+        height: 18px;
+      }
+
+      .theme-toggle.active::before {
+        transform: translateX(20px);
+      }
+
+      .contact-btn {
+        width: 50px;
+        height: 50px;
+        bottom: 12px;
+        right: 12px;
+        font-size: 1.5rem;
+      }
+
+      .footer {
+        padding: 16px 12px;
+        font-size: 0.8rem;
+      }
+
+      .footer-credit {
+        font-size: 0.78rem;
+      }
     }
   </style>
 </head>
 <body>
 
-  <img src="talha_logo.png" alt="TALHA HUB Logo" class="logo">
-  <h1>🎬 Tamasha Activation</h1>
-
-  <div class="card">
-    <input type="text" id="msisdn" placeholder="Enter your number (03XXXXXXXXX)" />
-    <button id="getOtpBtn">Get OTP</button>
-    <div id="otpStatus"></div>
-
-    <input type="text" id="otp" placeholder="Enter OTP" />
-    
-    <button id="activate1Btn">Activate 1 Day</button>
-    <button id="activate3Btn">Activate 3 Days</button>
-    <button id="activate7Btn">Activate 7 Days</button>
-    <button id="activate30Btn">Activate 30 Days</button>
-
-    <div id="responseBlock">
-      <p id="responseMsg"></p>
-      <div id="loader"></div>
-    </div>
-
-    <button class="back-home" onclick="window.location.href='index.html'">⬅️ Back to Home</button>
+  <!-- Page Loader -->
+  <div id="pageLoader">
+    <img src="images/talha_logo.png" alt="Logo" class="loader-logo">
+    <div class="loader-spinner"></div>
   </div>
 
-  <div class="footer">POWERED BY TALHA SHAIKH 💯</div>
+  <!-- Animated Neon Background -->
+  <div class="neon-bg">
+    <div class="neon-circle"></div>
+    <div class="neon-circle"></div>
+    <div class="neon-circle"></div>
+    <div class="neon-circle"></div>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <div class="logo-section">
+        <img src="images/talha_logo.png" alt="TALHA HUB Logo" class="logo">
+        <div class="logo-text">TALHA HUB</div>
+      </div>
+      <div class="header-controls">
+        <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()"></div>
+        <a href="index.html" class="back-btn">← Back</a>
+      </div>
+    </div>
+
+    <div class="content">
+      <h1 class="page-title">🎬 Tamasha Activation</h1>
+      <p class="page-subtitle">Activate your Tamasha subscription packages</p>
+
+      <div class="form-group">
+        <label class="form-label">Phone Number</label>
+        <input type="text" id="msisdn" placeholder="Enter your number (03XXXXXXXXX)" />
+      </div>
+
+      <button id="getOtpBtn" class="btn-primary">Get OTP</button>
+      <div id="otpStatus"></div>
+
+      <div class="form-group">
+        <label class="form-label">OTP Code</label>
+        <input type="text" id="otp" placeholder="Enter OTP" />
+      </div>
+
+      <div class="btn-group">
+        <button id="activate1Btn" class="btn-success">1 Day</button>
+        <button id="activate3Btn" class="btn-success">3 Days</button>
+        <button id="activate7Btn" class="btn-success">7 Days</button>
+        <button id="activate30Btn" class="btn-success">30 Days</button>
+      </div>
+
+      <div id="responseBlock">
+        <p id="responseMsg"></p>
+        <div id="loader"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      All rights reserved by Talha 💯
+      <div class="footer-credit">Redesign by <a href="https://t.me/MIRHADII07" target="_blank">@MIRHADII07</a></div>
+    </div>
+  </div>
+
+  <!-- Contact Us Button -->
+  <a href="https://t.me/Op_talha_07" target="_blank" class="contact-btn">
+    📞
+  </a>
 
   <script>
     const OTP_API_URL = "https://damp-resonance-12e3.ilyasbhai869.workers.dev/";
@@ -174,12 +647,43 @@
     let resendSeconds = 30;
     let resendTimer = null;
 
-    msisdnInput.addEventListener('input', ()=>{
-      let val = msisdnInput.value.replace(/\D/g,'');
-      if(val.startsWith('92') && val.length>=10) val='+'+val;
-      else if(val.startsWith('3')) val='+92'+val;
-      else if(val.startsWith('0')) val='+92'+val.slice(1);
+    // Fixed phone number formatting
+    msisdnInput.addEventListener('input', () => {
+      let val = msisdnInput.value.replace(/\D/g, ''); // Remove all non-digits
+      
+      // Format to +92XXXXXXXXXX consistently
+      if (val.startsWith('92')) {
+        val = '+' + val; // Already has 92
+      } else if (val.startsWith('0')) {
+        val = '+92' + val.slice(1); // Remove leading 0 and add +92
+      } else if (val.startsWith('3')) {
+        val = '+92' + val; // Add +92 prefix
+      } else if (val.length > 0) {
+        val = '+92' + val; // Add +92 for any other input
+      }
+      
+      // Limit to +92XXXXXXXXXX format (13 chars total)
+      if (val.length > 13) {
+        val = val.slice(0, 13);
+      }
+      
       msisdnInput.value = val;
+    });
+
+    // Dark mode toggle function
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+      document.getElementById('themeToggle').classList.toggle('active');
+      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    }
+
+    // Load saved theme
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('themeToggle').classList.add('active');
+      }
     });
 
     function showResponse(ok,msg){
@@ -248,6 +752,13 @@
     activate3Btn.onclick=()=>activate(4);
     activate7Btn.onclick=()=>activate(2);
     activate30Btn.onclick=()=>activate(3);
+
+    // Hide page loader
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        document.getElementById('pageLoader').classList.add('hidden');
+      }, 800);
+    });
   </script>
 </body>
 </html>
