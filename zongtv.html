@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TALHA HUB — Zong TV</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+body {
+  min-height:100vh;
+  background:linear-gradient(135deg, #f5e6f0 0%, #e8f4f8 100%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:20px;
+  position:relative;
+  overflow-y:auto;
+  overflow-x:hidden;
+  transition:background 0.5s ease;
+}
+@media (max-width:768px) {
+  body { padding:10px; }
+}
+body.dark-mode { background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+.neon-bg { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+.neon-circle { position:absolute; border-radius:50%; filter:blur(60px); opacity:0.4; animation:float 20s infinite ease-in-out; }
+.neon-circle:nth-child(1) { width:300px; height:300px; background:linear-gradient(45deg, #ff006e, #8338ec); top:-100px; left:-100px; animation-duration:25s; }
+.neon-circle:nth-child(2) { width:250px; height:250px; background:linear-gradient(45deg, #06ffa5, #00d9ff); top:50%; right:-100px; animation-duration:30s; animation-delay:-5s; }
+.neon-circle:nth-child(3) { width:350px; height:350px; background:linear-gradient(45deg, #ffbe0b, #fb5607); bottom:-150px; left:20%; animation-duration:35s; animation-delay:-10s; }
+.neon-circle:nth-child(4) { width:200px; height:200px; background:linear-gradient(45deg, #7209b7, #3a0ca3); top:20%; right:30%; animation-duration:28s; animation-delay:-15s; }
+@keyframes float { 0%, 100% { transform:translate(0,0) rotate(0deg); } 25% { transform:translate(100px,100px) rotate(90deg); } 50% { transform:translate(-50px,150px) rotate(180deg); } 75% { transform:translate(150px,-50px) rotate(270deg); } }
+body.dark-mode .neon-circle { opacity:0.3; filter:blur(80px); }
+
+.container { 
+  width:100%; 
+  max-width:1000px; 
+  margin:0 auto; 
+  background:white; 
+  border-radius:20px; 
+  box-shadow:0 10px 40px rgba(0,0,0,0.1); 
+  overflow:visible; 
+  position:relative; 
+  z-index:1; 
+  transition:all 0.3s;
+  display:flex;
+  flex-direction:column;
+}
+@media (max-width:768px) {
+  .container { border-radius:12px; min-height:calc(100vh - 40px); }
+}
+body.dark-mode .container { background:rgba(30,30,46,0.95); box-shadow:0 10px 40px rgba(0,0,0,0.5); backdrop-filter:blur(10px); }
+
+.header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:20px 30px;
+  border-bottom:1px solid #e5e7eb;
+  transition:border-color 0.3s ease;
+}
+body.dark-mode .header { border-bottom-color:#4a4a5e; }
+.header-controls { display:flex; align-items:center; gap:10px; }
+.theme-toggle { width:50px; height:26px; background:#6b7280; border-radius:13px; position:relative; cursor:pointer; transition:background 0.3s ease; margin-right:10px; }
+.theme-toggle.active { background:#3b82f6; }
+.theme-toggle::before { content:''; position:absolute; width:22px; height:22px; border-radius:50%; background:white; top:2px; left:2px; transition:transform 0.3s ease; }
+.theme-toggle.active::before { transform:translateX(24px); }
+
+.logo-section { display:flex; align-items:center; gap:12px; }
+.logo { width:40px; height:40px; border-radius:8px; }
+.logo-text { font-size:1.2rem; font-weight:700; color:#1f2937; transition:color 0.3s; }
+body.dark-mode .logo-text { color:#e0e0e0; }
+.back-btn { padding:8px 16px; background:#6b7280; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; transition:all 0.3s; font-size:0.9rem; text-decoration:none; }
+.back-btn:hover { background:#4b5563; transform:translateY(-2px); }
+.content { padding:30px; flex:1; }
+@media (max-width:768px) {
+  .content { padding:20px 15px; }
+}
+.page-title { font-size:1.8rem; font-weight:700; color:#1f2937; margin-bottom:8px; text-align:center; transition:color 0.3s; }
+body.dark-mode .page-title { color:#e0e0e0; }
+.page-subtitle { color:#6b7280; text-align:center; margin-bottom:25px; font-size:0.95rem; transition:color 0.3s; }
+body.dark-mode .page-subtitle { color:#a0a0a0; }
+
+/* Player */
+.player-box { 
+  position:relative; 
+  width:100%; 
+  padding-top:56.25%; 
+  background:#000; 
+  overflow:hidden; 
+  cursor:pointer; 
+  border-radius:12px;
+}
+body.dark-mode .player-box { background:#0a0a0a; }
+#videoPlayer { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:contain; background:#000; }
+@media (max-width:768px) {
+  .player-box { border-radius:8px; }
+}
+
+/* Loader */
+#loader { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); z-index:100; visibility:hidden; }
+.loader-spin { border:4px solid rgba(255,255,255,0.3); border-top:4px solid #9333ea; border-radius:50%; width:50px; height:50px; animation:spin 1s linear infinite; }
+@keyframes spin { 100% {transform:rotate(360deg);} }
+
+/* Controls */
+.controls { 
+  position:absolute; 
+  bottom:50px; 
+  left:0; 
+  right:0; 
+  display:flex; 
+  justify-content:center; 
+  align-items:center; 
+  opacity:1; 
+  transition:opacity 0.4s; 
+  flex-wrap:wrap; 
+  z-index:20; 
+  gap:10px; 
+  padding:0 15px;
+}
+.controls.hidden { opacity:0; pointer-events:none; }
+.control-btn { 
+  background:rgba(59,130,246,0.95); 
+  color:white; 
+  width:48px; 
+  height:48px; 
+  border-radius:50%; 
+  display:flex; 
+  align-items:center; 
+  justify-content:center; 
+  cursor:pointer; 
+  transition:all 0.3s; 
+  font-size:20px; 
+  border:2px solid rgba(255,255,255,0.3); 
+  box-shadow:0 4px 12px rgba(0,0,0,0.3);
+}
+.control-btn:hover { 
+  background:rgba(37,99,235,1); 
+  transform:scale(1.15); 
+  box-shadow:0 6px 16px rgba(59,130,246,0.5);
+}
+@media (max-width:768px) {
+  .controls { bottom:45px; gap:8px; padding:0 12px; }
+  .control-btn { width:42px; height:42px; font-size:17px; border-width:2px; }
+}
+#channelName { 
+  position:absolute; 
+  top:10px; 
+  left:10px; 
+  background:rgba(59,130,246,0.95); 
+  color:white; 
+  padding:6px 12px; 
+  border-radius:8px; 
+  font-size:0.9rem; 
+  font-weight:600; 
+  z-index:25; 
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+@media (max-width:768px) {
+  #channelName { font-size:0.75rem; padding:4px 8px; top:8px; left:8px; }
+}
+
+/* Quality menu */
+#qualityMenu { 
+  position:absolute; 
+  bottom:100px; 
+  right:10px; 
+  background:rgba(255,255,255,0.95); 
+  border-radius:10px; 
+  padding:8px; 
+  display:none; 
+  z-index:30; 
+  box-shadow:0 4px 12px rgba(0,0,0,0.2); 
+}
+body.dark-mode #qualityMenu { background:rgba(30,30,46,0.95); }
+#qualityMenu button { 
+  display:block; 
+  width:100%; 
+  padding:8px 14px; 
+  color:#1f2937; 
+  background:transparent; 
+  border:none; 
+  text-align:left; 
+  cursor:pointer; 
+  border-radius:6px; 
+  margin-bottom:4px; 
+  transition:all 0.3s; 
+  font-size:0.9rem;
+}
+body.dark-mode #qualityMenu button { color:#e0e0e0; }
+#qualityMenu button:hover { background:rgba(59,130,246,0.2); }
+#qualityMenu button.active-quality { background:#3b82f6; color:white; }
+@media (max-width:768px) {
+  #qualityMenu { bottom:90px; right:8px; padding:6px; }
+  #qualityMenu button { padding:6px 10px; font-size:0.8rem; }
+}
+
+/* Progress bar */
+#progressContainer { 
+  position:absolute; 
+  bottom:10px; 
+  left:10px; 
+  right:10px; 
+  height:6px; 
+  background:rgba(255,255,255,0.3); 
+  border-radius:3px; 
+  cursor:pointer; 
+  z-index:20; 
+}
+#progressBar { width:0%; height:100%; background:#3b82f6; border-radius:3px; }
+#progressHandle { 
+  position:absolute; 
+  top:-4px; 
+  width:14px; 
+  height:14px; 
+  background:#fff; 
+  border-radius:50%; 
+  transform:translateX(-50%); 
+  cursor:pointer; 
+  box-shadow:0 2px 6px rgba(0,0,0,0.3);
+}
+#timeDisplay { 
+  position:absolute; 
+  bottom:18px; 
+  right:15px; 
+  color:white; 
+  font-size:11px; 
+  background:rgba(0,0,0,0.7); 
+  padding:3px 6px; 
+  border-radius:4px; 
+  z-index:20; 
+  font-weight:600;
+}
+@media (max-width:768px) {
+  #progressContainer { bottom:8px; left:8px; right:8px; height:4px; }
+  #progressHandle { width:12px; height:12px; top:-4px; }
+  #timeDisplay { font-size:9px; padding:2px 4px; bottom:14px; right:10px; }
+}
+
+/* Channels Grid */
+#channelGrid { 
+  display:grid; 
+  grid-template-columns:repeat(auto-fill, minmax(80px, 1fr)); 
+  gap:15px; 
+  padding:20px; 
+  background:#f9fafb; 
+  border-radius:12px; 
+}
+@media (max-width:768px) {
+  #channelGrid { 
+    grid-template-columns:repeat(3, 1fr); 
+    gap:8px; 
+    padding:12px; 
+  }
+}
+body.dark-mode #channelGrid { background:rgba(20,20,35,0.8); }
+.channel-logo { width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px; cursor:pointer; transition:all 0.3s; border:3px solid transparent; background:white; padding:5px; }
+body.dark-mode .channel-logo { background:rgba(45,45,60,0.8); border-color:#4a4a5e; }
+body.dark-mode .channel-logo:hover { border-color:#3b82f6; }
+.channel-logo:hover { transform:translateY(-4px); box-shadow:0 6px 16px rgba(0,0,0,0.15); }
+.active-channel { border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,0.3); }
+
+.footer { text-align:center; padding:20px; color:#6b7280; font-size:0.9rem; border-top:1px solid #e5e7eb; transition:all 0.3s; }
+body.dark-mode .footer { color:#a0a0a0; border-top-color:#4a4a5e; }
+.footer-credit { margin-top:8px; font-size:0.85rem; word-break:break-word; overflow-wrap:break-word; }
+.footer-credit a { color:#0088cc; text-decoration:none; font-weight:600; }
+body.dark-mode .footer-credit a { color:#3b82f6; }
+
+.contact-btn { 
+  position:fixed; 
+  bottom:20px; 
+  right:20px; 
+  width:60px; 
+  height:60px; 
+  background:#0088cc; 
+  border-radius:50%; 
+  display:flex; 
+  align-items:center; 
+  justify-content:center; 
+  box-shadow:0 4px 12px rgba(0,136,204,0.4); 
+  cursor:pointer; 
+  transition:all 0.3s; 
+  z-index:1000;
+  text-decoration:none;
+  font-size:1.8rem;
+}
+.contact-btn:hover { transform:scale(1.1); box-shadow:0 6px 20px rgba(0,136,204,0.6); }
+@media (max-width:768px) {
+  .contact-btn { width:50px; height:50px; bottom:15px; right:15px; font-size:1.5rem; }
+}
+
+@media (max-width:768px) {
+  .header { padding:12px 14px; }
+  .page-title { font-size:1.35rem; margin-bottom:6px; }
+  .page-subtitle { font-size:0.82rem; margin-bottom:18px; }
+  .logo { width:32px; height:32px; }
+  .logo-text { font-size:0.95rem; }
+  .logo-section { gap:8px; }
+  .back-btn { padding:6px 12px; font-size:0.82rem; }
+  .theme-toggle { width:42px; height:22px; margin-right:6px; }
+  .theme-toggle::before { width:18px; height:18px; }
+  .theme-toggle.active::before { transform:translateX(20px); }
+  .content { padding:18px 12px; }
+  .player-box { border-radius:10px; }
+  .footer { padding:16px 12px; font-size:0.8rem; }
+  .footer-credit { font-size:0.78rem; }
+}
+  </style>
+</head>
+<body>
+  <div class="neon-bg"><div class="neon-circle"></div><div class="neon-circle"></div><div class="neon-circle"></div><div class="neon-circle"></div></div>
+  <div class="container">
+    <div class="header">
+      <div class="logo-section">
+        <img src="images/talha_logo.png" alt="TALHA HUB Logo" class="logo">
+        <div class="logo-text">TALHA HUB</div>
+      </div>
+      <div class="header-controls">
+        <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()"></div>
+        <a href="index.html" class="back-btn">← Back</a>
+      </div>
+    </div>
+
+    <div class="content">
+      <h1 class="page-title">📺 Zong TV</h1>
+      <p class="page-subtitle">Live TV streaming service</p>
+
+      <div class="player-box" id="playerBox" onclick="toggleControls()">
+        <video id="videoPlayer" autoplay poster="images/talhatv.jpg"></video>
+        <div id="loader"><div class="loader-spin"></div></div>
+        <div id="controls" class="controls">
+          <button onclick="prevChannel()" class="control-btn">⏮</button>
+          <button id="playBtn" onclick="togglePlay()" class="control-btn">▶</button>
+          <button id="muteBtn" onclick="toggleMute()" class="control-btn">🔊</button>
+          <button onclick="nextChannel()" class="control-btn">⏭</button>
+          <button onclick="toggleFullScreen()" class="control-btn">⛶</button>
+          <button onclick="toggleSizeMode()" class="control-btn">🖼</button>
+          <button onclick="toggleQualityMenu()" class="control-btn">⚙</button>
+        </div>
+        <div id="qualityMenu"></div>
+        <div id="progressContainer" onclick="seekVideo(event)">
+          <div id="progressBar"></div>
+          <div id="progressHandle"></div>
+        </div>
+        <div id="timeDisplay">00:00 / 00:00</div>
+        <div id="channelName">Select a channel</div>
+      </div>
+
+      <div id="channelGrid">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4atGM34rXtNQzx2wCnQQVzGSjU805qIOdFw&usqp=CAU" onclick="playChannel(this,'Saudi Quran','https://vodzong.mjunoon.tv:8087/streamtest/SaudiQuran-142/playlist.m3u8')" alt="Saudi Quran" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGupfsMkkP5X3iP6XZx6yi2LSzq8_6TIOC-w&usqp=CAU" onclick="playChannel(this,'Saudi Sunnah','https://vodzong.mjunoon.tv:8087/streamtest/SaudiSunnah-141/live/141M/chunks.m3u8')" alt="Saudi Sunnah" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRuLdTFn4TdP5-rF7YyPXTvOKguRsWJ0q0-cEDZUJ1gKGIl85TEpTiYSx0&s=10" onclick="playChannel(this,'Madani Tv','https://vodzong.mjunoon.tv:8087/streamtest/Madni-121/playlist.m3u8')" alt="Madani Tv" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqsvRHu6ZhAQdM0FE5MRF4Goto2-mcA6K4sw&usqp=CAU" onclick="playChannel(this,'PTV Home','https://vodzong.mjunoon.tv:8087/streamtest/ptv-home-174/playlist.m3u8')" alt="PTV Home" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQIKXUbh96lR2jrQ90lzfteBQuVL8TROFk0w&usqp=CAU" onclick="playChannel(this,'Bol TV','https://vodzong.mjunoon.tv:8087/streamtest/bolnent-159-4/playlist.m3u8')" alt="Bol TV" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgK3r8pJhDdYfdu-8lGclYbvW6W4wB9lNqF-1MvwY05aPkBrB_1zigQHA&s=10" onclick="playChannel(this,'Bol News','https://vodzong.mjunoon.tv:8087/streamtest/bolnews-159-3/playlist.m3u8')" alt="Bol News" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwagVGRGWczQgdzNC-RdEl1t0eF_C8_yzh-o-9WlBh7yfFR6ovB8AIKi61&s=10" onclick="playChannel(this,'Express News','https://vodzong.mjunoon.tv:8087/streamtest/ExpressNews-155/playlist.m3u8')" alt="Express News" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCfJKkUhCHVllOSPBVjwCFpPn9b-P_of0kjA&usqp=CAU" onclick="playChannel(this,'Express Ent','https://vodzong.mjunoon.tv:8087/streamtest/EXP-ENT-159-1/playlist.m3u8')" alt="Express Ent" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnWayKJ8devGcnrbcnfboF1RETCKoWr2aFjP-1W8iw-1p4TlYmZ6bQwnlG&s=10" onclick="playChannel(this,'Jalwa','https://vodzong.mjunoon.tv:8087/streamtest/JalwaTV-135/live/135M/chunks.m3u8')" alt="Jalwa" class="channel-logo">
+        <img src="http://8xm.tv/wp-content/uploads/2019/02/512X512p.png" onclick="playChannel(this,'8XM','https://vodzong.mjunoon.tv:8087/streamtest/8XM-131/playlist.m3u8')" alt="8XM" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5pVm-0Pp3hKucynZctFMIeh985gMe84RR3A&usqp=CAU" onclick="playChannel(this,'Oxygen Tv','https://vodzong.mjunoon.tv:8087/streamtest/132M/playlist.m3u8')" alt="Oxygen Tv" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJvGC860EQrod1hNmPrj9gyzoub5Qgg2M0l_12dQS18O914xV-yjE1-zHH&s=10" onclick="playChannel(this,'Geo Tv','https://vodzong.mjunoon.tv:8087/streamtest/geoent-122/playlist.m3u8')" alt="Geo Tv" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTvmQmYYa9mh7dXePN1DEBpawvKb2Jcd0Shw&usqp=CAU" onclick="playChannel(this,'Geo News','https://vodzong.mjunoon.tv:8087/streamtest/geonews-137/playlist.m3u8')" alt="Geo News" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpxnA2_kHg8QgWos0GjlvCvENmdUgQhhTO1hIAwqSOE4Txfibg0oCxaq4&s=10" onclick="playChannel(this,'Urdu 1','https://vodzong.mjunoon.tv:8087/streamtest/Urdu1-158-4/playlist.m3u8')" alt="Urdu 1" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQdzutge89wiGQnXi2_-xgth7iKTQiHQS1ZzQ&usqp=CAU" onclick="playChannel(this,'A Plus','https://vodzong.mjunoon.tv:8087/streamtest/APlus-118/playlist.m3u8')" alt="A Plus" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTUKeKZG1vzTQk_qslUAkxCz_KwQo4bXdFL7d1OFpH6-XkZNk0&s" onclick="playChannel(this,'AAJ Entertainment','https://vodzong.mjunoon.tv:8087/streamtest/AAJENT-125/playlist.m3u8')" alt="AAJ Entertainment" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTw3XifA6zKwga4pcAvvSHEi4Jx-vMLbIBfjBijrZiG1hhVwtxJES73OqXk&s=10" onclick="playChannel(this,'AAJ News','https://vodzong.mjunoon.tv:8087/streamtest/AAJNews-124/playlist.m3u8')" alt="AAJ News" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGsxWjXyJ9Nxvf78Le-W1jkerBBuztBahqs6VO3g8QZPVJC_LKagkmBYU&s=10" onclick="playChannel(this,'Sindh TV','https://vodzong.mjunoon.tv:8087/streamtest/SindhTV-136-1/live/136-1M/chunks.m3u8')" alt="Sindh TV" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTElWZUWbSKUaT9_4ZMQ_6rH2n7qzcRCsmrgw&usqp=CAU" onclick="playChannel(this,'Sindh News','https://vodzong.mjunoon.tv:8087/streamtest/SindhNews-136-2/playlist.m3u8')" alt="Sindh News" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1Vbtybwih6wSaFraEAU6ym_-jyUXoz9qBYA&usqp=CAU" onclick="playChannel(this,'KTN TV','https://vodzong.mjunoon.tv:8087/streamtest/KTN-149/playlist.m3u8')" alt="KTN TV" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqACj5a67chU59ADkTM8gApWbYjQjKyDzHEA&usqp=CAU" onclick="playChannel(this,'KTN News','https://vodzong.mjunoon.tv:8087/streamtest/KTNNews-151/playlist.m3u8')" alt="KTN News" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7a5ORjEqgt5veU6e0ltVmk_IZuov34IVWN4DwQELwboZIEJc&s" onclick="playChannel(this,'Kashish TV','https://vodzong.mjunoon.tv:8087/streamtest/Kashish-150/playlist.m3u8')" alt="Kashish TV" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGw2NFUe2PRUaUZ5zPFexMWsJdD5XdTJhcUg&usqp=CAU" onclick="playChannel(this,'Awaz TV','https://vodzong.mjunoon.tv:8087/streamtest/AWAZ-120/playlist.m3u8')" alt="Awaz TV" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9ItuK1wSgi8G2Cluif09aNKdbxSYa5E1pYJw66W6RDjck2-KfHIlBAAM&s=10" onclick="playChannel(this,'Time News','https://vodzong.mjunoon.tv:8087/streamtest/time-news-172/playlist.m3u8')" alt="Time News" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsltTCnRhJul3X7RgioroIN-fkR6G9nh7z3g&usqp=CAU" onclick="playChannel(this,'Play TV','https://vodzong.mjunoon.tv:8087/streamtest/playtv-154/playlist.m3u8')" alt="Play TV" class="channel-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/en/c/c3/Abb_Tak_news_logo.png" onclick="playChannel(this,'AbbTak News','https://vodzong.mjunoon.tv:8087/streamtest/AbbTakNews-133/live/133H/chunks.m3u8')" alt="AbbTak News" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQxegS2MnXuq9RiMdfxqW8rfqlyFKTr5HwMgg&usqp=CAU" onclick="playChannel(this,'Samaa TV','https://vodzong.mjunoon.tv:8087/streamtest/Samaa-157-3/playlist.m3u8')" alt="Samaa TV" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrs-9thVXyGDeokLLg9jJeGGRtg3P7WdWMzg&usqp=CAU" onclick="playChannel(this,'Dawn News','https://vodzong.mjunoon.tv:8087/streamtest/DawnNews-152/playlist.m3u8')" alt="Dawn News" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSkYgs_Akm-8OaExLxX2Jk1Vm3VKV6zTJake-vDe3Nho7vfL1C2zHFuEDDN&s=10" onclick="playChannel(this,'Hum TV','https://vodzong.mjunoon.tv:8087/streamtest/Hum-TV-136-3/playlist.m3u8')" alt="Hum TV" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmsgdiQC-oH_neSmr9rn4Q64tmaPXjW_pCeg&usqp=CAU" onclick="playChannel(this,'Hum News','https://vodzong.mjunoon.tv:8087/streamtest/Hum-news-80/playlist.m3u8')" alt="Hum News" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTk5mYNrIsFgaQacU64xg6TXvnHdDrhK_s1Tg&usqp=CAU" onclick="playChannel(this,'Dunya News','https://vodzong.mjunoon.tv:8087/streamtest/DunyaNews-113/playlist.m3u8')" alt="Dunya News" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZYOj6PnXQCNoA2S1vK79MpuGOP5Y3ow4IA7kwj3yeNqdgrrz9M9l_QEA&s=10" onclick="playChannel(this,'See TV','https://vodzong.mjunoon.tv:8087/streamtest/SeeTV-156/playlist.m3u8')" alt="See TV" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfsji6pOJevIdHmug5J2ppCxB40sBaCEqfqcnNo06Xrzr-uHNvKA6BoEk&s=10" onclick="playChannel(this,'Baby TV','https://vodzong.mjunoon.tv:8087/streamtest/babytv-77/playlist.m3u8')" alt="Baby TV" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOoWEUxqSt1T1KHUwj-3S_U_TlAZ-JtR1ujQ&usqp=CAU" onclick="playChannel(this,'Champion TV','https://vodzong.mjunoon.tv:8087/streamtest/champion-177/playlist.m3u8')" alt="Champion TV" class="channel-logo">
+        <img src="https://i1.wp.com/tvtonight.com.au/wp-content/uploads/2013-01-01_1835.jpg?w=290&ssl=1" onclick="playChannel(this,'Movie One','https://vodzong.mjunoon.tv:8087/streamtest/movie-one-176/playlist.m3u8')" alt="Movie One" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQN4ty614iusgACZsNv19qUIaOWQfjC_svwTg&usqp=CAU" onclick="playChannel(this,'TV1','https://vodzong.mjunoon.tv:8087/streamtest/TV1-129/playlist.m3u8')" alt="TV1" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6nNDOHnQcTUrc927J8WJCKguprLBriecThA&usqp=CAU" onclick="playChannel(this,'WASEB','https://vodzong.mjunoon.tv:8087/streamtest/WASEB-130/playlist.m3u8')" alt="WASEB" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3HxB_nRvvD0KireVtBymmZD-ZScTmYwQSow&usqp=CAU" onclick="playChannel(this,'Roz News','https://vodzong.mjunoon.tv:8087/streamtest/RozNews-139/playlist.m3u')" alt="Roz News" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZdvN4yiS31fNgC1fv48P-a7IXWi6MIe7yAQ&usqp=CAU" onclick="playChannel(this,'VSH News','https://vodzong.mjunoon.tv:8087/streamtest/VSHTV-122/playlist.m3u8')" alt="VSH News" class="channel-logo">
+        <img src="https://pbs.twimg.com/media/EwAo8HrXMAITpUb?format=jpg&name=360x360" onclick="playChannel(this,'Channel 5','https://vodzong.mjunoon.tv:8087/streamtest/Channel5-159-4/live/159-4M/chunks.m3u8')" alt="Channel 5" class="channel-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Deutsche_Welle_symbol_2012.svg/1200px-Deutsche_Welle_symbol_2012.svg.png" onclick="playChannel(this,'DW','https://vodzong.mjunoon.tv:8087/streamtest/DW-136-4A/playlist.m3u8')" alt="DW" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPVRFCHHW_gH-9LSOuxX2zcLYQS3xQVXuTGw&usqp=CAU" onclick="playChannel(this,'Cartoon Network','https://vodzong.mjunoon.tv:8087/streamtest/cartoon-network-87/playlist.m3u8')" alt="Cartoon Network" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTq40dDTWvE6YwjbB3LSdTapLtAbVtdRoLyiw&usqp=CAU" onclick="playChannel(this,'Aruj TV','https://vodzong.mjunoon.tv:8087/streamtest/ArujTV-117/playlist.m3u8')" alt="Aruj TV" class="channel-logo">
+        <img src="https://pbs.twimg.com/profile_images/973580855317708801/0AJ7v7He.jpg" onclick="playChannel(this,'A1 News','https://vodzong.mjunoon.tv:8087/streamtest/A1-184/playlist.m3u8')" alt="A1 News" class="channel-logo">
+        <img src="https://pbs.twimg.com/media/EwAp_IFXIAEs3i3?format=jpg&name=240x240" onclick="playChannel(this,'K21 News','https://vodzong.mjunoon.tv:8087/streamtest/K21News-116/playlist.m3u8')" alt="K21 News" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9P-kqdcLO7biPX520IsodHU9A6LeqXO0F2w&usqp=CAU" onclick="playChannel(this,'24 HD','https://vodzong.mjunoon.tv:8087/streamtest/24HD-146/playlist.m3u8')" alt="24 HD" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRF_NuLRli6VMhGWfP4NpFPLWWoiCpz4aasQA&usqp=CAU" onclick="playChannel(this,'Anim Plan','https://vodzong.mjunoon.tv:8087/streamtest/anim-plan-179/live/179M/chunks.m3u8')" alt="Anim Plan" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWrOWoWUoQhKJrM-fmzeYa4FM_zgMZECXBaw&usqp=CAU" onclick="playChannel(this,'NEWS1','https://vodzong.mjunoon.tv:8087/streamtest/NEWS1-128/playlist.m3u8')" alt="NEWS1" class="channel-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Public-News-Logo-1.jpg" onclick="playChannel(this,'Public News','https://vodzong.mjunoon.tv:8087/streamtest/public-115/playlist.m3u8')" alt="Public News" class="channel-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/en/a/a6/Neo_News_logo.jpg" onclick="playChannel(this,'Neo News','https://vodzong.mjunoon.tv:8087/streamtest/Neo-110/playlist.m3u8')" alt="Neo News" class="channel-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/CNN.svg/1200px-CNN.svg.png" onclick="playChannel(this,'CNN','https://vodzong.mjunoon.tv:8087/streamtest/cnn-86/playlist.m3u8')" alt="CNN" class="channel-logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6dtEgQit4hjIDU8JUzhfFAhgjiXyG0Dw_Gg&usqp=CAU" onclick="playChannel(this,'Capital TV','https://vodzong.mjunoon.tv:8087/streamtest/capitaltv-111/playlist.m3u8')" alt="Capital TV" class="channel-logo">
+      </div>
+    </div>
+
+    <div class="footer">
+      All rights reserved by Talha 💯
+      <div class="footer-credit">Redesign by <a href="https://t.me/MIRHADII07" target="_blank">@MIRHADII07</a></div>
+    </div>
+  </div>
+
+  <!-- Contact Us Button -->
+<a href="https://t.me/Op_talha_07" target="_blank" class="contact-btn">
+  📞
+</a>
+
+  <script>
+/* Theme Toggle */
+function toggleTheme() {
+  document.body.classList.toggle('dark-mode');
+  document.getElementById('themeToggle').classList.toggle('active');
+  localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+}
+
+/* Player & Controls */
+const video = document.getElementById('videoPlayer');
+const loader = document.getElementById('loader');
+const channelName = document.getElementById('channelName');
+const controls = document.getElementById('controls');
+const playBtn = document.getElementById('playBtn');
+const muteBtn = document.getElementById('muteBtn');
+const progressBar = document.getElementById('progressBar');
+const progressHandle = document.getElementById('progressHandle');
+const timeDisplay = document.getElementById('timeDisplay');
+const qualityBtn = document.getElementById('qualityBtn');
+const qualityMenu = document.getElementById('qualityMenu');
+
+let hls;
+let currentChannel = '';
+let currentUrl = '';
+let allChannels = [];
+
+// Auto-play first channel on page load
+window.addEventListener('DOMContentLoaded', () => {
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark-mode');
+    document.getElementById('themeToggle').classList.add('active');
+  }
+  
+  allChannels = Array.from(document.querySelectorAll('.channel-logo'));
+  const firstChannel = allChannels[0];
+  if (firstChannel) {
+    setTimeout(() => {
+      firstChannel.click();
+    }, 1000);
+  }
+});
+
+function playChannel(img, name, url) {
+  currentChannel = name;
+  currentUrl = url;
+  channelName.textContent = name;
+  
+  document.querySelectorAll('.channel-logo').forEach(ch => ch.classList.remove('active-channel'));
+  img.classList.add('active-channel');
+  
+  loader.style.visibility = 'visible';
+  
+  if (hls) { hls.destroy(); }
+  
+  if (Hls.isSupported()) {
+    hls = new Hls();
+    hls.loadSource(url);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      video.play();
+      loader.style.visibility = 'hidden';
+    });
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = url;
+    video.addEventListener('loadedmetadata', () => {
+      video.play();
+      loader.style.visibility = 'hidden';
+    });
+  }
+}
+
+function togglePlay() {
+  if (video.paused) {
+    video.play();
+    playBtn.textContent = '⏸';
+  } else {
+    video.pause();
+    playBtn.textContent = '▶';
+  }
+}
+
+function toggleMute() {
+  video.muted = !video.muted;
+  muteBtn.textContent = video.muted ? '🔇' : '🔊';
+}
+
+function toggleFullScreen() {
+  if (!document.fullscreenElement) {
+    document.getElementById('playerBox').requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+let sizeMode = 'contain';
+function toggleSizeMode() {
+  sizeMode = sizeMode === 'contain' ? 'cover' : 'contain';
+  video.style.objectFit = sizeMode;
+}
+
+function toggleQualityMenu() {
+  qualityMenu.style.display = qualityMenu.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleControls() {
+  controls.classList.toggle('hidden');
+}
+
+function seekVideo(event) {
+  const rect = event.currentTarget.getBoundingClientRect();
+  const pos = (event.clientX - rect.left) / rect.width;
+  video.currentTime = pos * video.duration;
+}
+
+function prevChannel() {
+  const currentIndex = allChannels.findIndex(ch => ch.classList.contains('active-channel'));
+  const prevIndex = (currentIndex - 1 + allChannels.length) % allChannels.length;
+  allChannels[prevIndex].click();
+}
+
+function nextChannel() {
+  const currentIndex = allChannels.findIndex(ch => ch.classList.contains('active-channel'));
+  const nextIndex = (currentIndex + 1) % allChannels.length;
+  allChannels[nextIndex].click();
+}
+
+video.addEventListener('timeupdate', () => {
+  if (video.duration) {
+    const percent = (video.currentTime / video.duration) * 100;
+    progressBar.style.width = percent + '%';
+    progressHandle.style.left = percent + '%';
+    const current = formatTime(video.currentTime);
+    const total = formatTime(video.duration);
+    timeDisplay.textContent = `${current} / ${total}`;
+  }
+});
+
+function formatTime(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  return h > 0 ? `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}` : `${m}:${s.toString().padStart(2, '0')}`;
+}
+  </script>
+</body>
+</html>

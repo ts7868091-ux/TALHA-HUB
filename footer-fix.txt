@@ -1,0 +1,17 @@
+Footer Credit CSS Fix:
+
+.footer-credit {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+Mobile:
+.footer-credit {
+  font-size: 0.78rem;
+}
+
+.footer {
+  padding: 16px 12px;
+}
