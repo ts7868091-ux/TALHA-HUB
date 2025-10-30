@@ -4,181 +4,567 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TALHA HUB DATABASE</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-    body {
+    * {
         margin: 0;
+        padding: 0;
+        box-sizing: border-box;
         font-family: 'Poppins', sans-serif;
-        background: linear-gradient(135deg, #000428, #004e92);
-        color: white;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+    }
+
+    /* Loading Animation */
+    #pageLoader {position:fixed;top:0;left:0;width:100%;height:100%;background:#1f2937;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;transition:opacity 0.5s ease, visibility 0.5s ease;}
+    #pageLoader.hidden {opacity:0;visibility:hidden;}
+    .loader-logo {width:70px;height:70px;border-radius:50%;animation:pulse 1.5s ease-in-out infinite;}
+    @keyframes pulse {0%, 100% {transform:scale(1);opacity:1;}50% {transform:scale(1.1);opacity:0.8;}}
+    .loader-spinner {margin-top:25px;width:50px;height:50px;position:relative;}
+    .loader-spinner::before,.loader-spinner::after {content:'';position:absolute;width:100%;height:100%;border-radius:50%;border:3px solid transparent;border-top-color:#3b82f6;}
+    .loader-spinner::before {animation:spin 1s linear infinite;}
+    .loader-spinner::after {border-top-color:#10b981;animation:spin 1.5s linear infinite reverse;}
+    @keyframes spin {to {transform:rotate(360deg);}}
+
+    body {
         min-height: 100vh;
-    }
-
-    .logo {
-        margin-top: 30px;
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        overflow: hidden;
-        box-shadow: 0 0 20px cyan, 0 0 40px #00ffff33;
-    }
-
-    .logo img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    h1 {
-        margin-top: 20px;
-        text-shadow: 0 0 15px cyan;
-        font-size: 28px;
-    }
-
-    .search-box {
-        margin-top: 30px;
+        background: #f3f4f6;
         display: flex;
         justify-content: center;
+        align-items: flex-start;
+        padding: 20px;
+        padding-top: 40px;
+        position: relative;
+        overflow-y: auto;
+        overflow-x: hidden;
+        transition: background 0.3s ease;
+    }
+
+    body.dark-mode {
+        background: #1f2937;
+    }
+
+    .neon-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .neon-circle {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(60px);
+        opacity: 0.4;
+        animation: float 20s infinite ease-in-out;
+    }
+
+    .neon-circle:nth-child(1) {
+        width: 300px;
+        height: 300px;
+        background: linear-gradient(45deg, #ff006e, #8338ec);
+        top: -100px;
+        left: -100px;
+        animation-duration: 25s;
+    }
+
+    .neon-circle:nth-child(2) {
+        width: 250px;
+        height: 250px;
+        background: linear-gradient(45deg, #06ffa5, #00d9ff);
+        top: 50%;
+        right: -100px;
+        animation-duration: 30s;
+        animation-delay: -5s;
+    }
+
+    .neon-circle:nth-child(3) {
+        width: 350px;
+        height: 350px;
+        background: linear-gradient(45deg, #ffbe0b, #fb5607);
+        bottom: -150px;
+        left: 20%;
+        animation-duration: 35s;
+        animation-delay: -10s;
+    }
+
+    .neon-circle:nth-child(4) {
+        width: 200px;
+        height: 200px;
+        background: linear-gradient(45deg, #7209b7, #3a0ca3);
+        top: 20%;
+        right: 30%;
+        animation-duration: 28s;
+        animation-delay: -15s;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        25% { transform: translate(100px, 100px) rotate(90deg); }
+        50% { transform: translate(-50px, 150px) rotate(180deg); }
+        75% { transform: translate(150px, -50px) rotate(270deg); }
+    }
+
+    body.dark-mode .neon-circle {
+        opacity: 0.3;
+        filter: blur(80px);
+    }
+
+    .container {
+        width: 100%;
+        max-width: 700px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        position: relative;
+        z-index: 1;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    body.dark-mode .container {
+        background: rgba(30, 30, 46, 0.95);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            min-height: calc(100vh - 40px);
+        }
+    }
+
+    .theme-toggle {
+        width: 50px;
+        height: 26px;
+        background: #6b7280;
+        border-radius: 13px;
+        position: relative;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        margin-right: 10px;
+    }
+
+    .theme-toggle.active {
+        background: #3b82f6;
+    }
+
+    .theme-toggle::before {
+        content: '';
+        position: absolute;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: white;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.3s ease;
+    }
+
+    .theme-toggle.active::before {
+        transform: translateX(24px);
+    }
+
+    .header-controls {
+        display: flex;
         align-items: center;
         gap: 10px;
     }
 
-    input {
-        padding: 12px;
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 30px;
+        border-bottom: 1px solid #e5e7eb;
+        transition: border-color 0.3s ease;
+    }
+
+    body.dark-mode .header {
+        border-bottom-color: #4a4a5e;
+    }
+
+    .logo-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .logo {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+
+    .logo-text {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1f2937;
+        transition: color 0.3s ease;
+    }
+
+    body.dark-mode .logo-text {
+        color: #e0e0e0;
+    }
+
+    .back-btn {
+        padding: 8px 16px;
+        background: #6b7280;
+        color: white;
         border: none;
-        border-radius: 30px;
-        width: 250px;
-        font-size: 16px;
-        outline: none;
-        box-shadow: 0 0 10px cyan, 0 0 20px #00ffff44;
-        background: #000;
-        color: cyan;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        text-decoration: none;
+    }
+
+    .back-btn:hover {
+        background: #4b5563;
+        transform: translateY(-2px);
+    }
+
+    .content {
+        padding: 30px;
+        flex: 1;
+    }
+
+    .page-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 8px;
         text-align: center;
+        transition: color 0.3s ease;
+    }
+
+    body.dark-mode .page-title {
+        color: #e0e0e0;
+    }
+
+    .page-subtitle {
+        color: #6b7280;
+        text-align: center;
+        margin-bottom: 25px;
+        font-size: 0.9rem;
+        transition: color 0.3s ease;
+    }
+
+    body.dark-mode .page-subtitle {
+        color: #a0a0a0;
+    }
+
+    .search-box {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 1rem;
+        outline: none;
+        transition: all 0.3s ease;
+        background: #f9fafb;
+        color: #1f2937;
+    }
+
+    input:focus {
+        border-color: #3b82f6;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    body.dark-mode input {
+        background: rgba(45, 45, 60, 0.8);
+        border-color: #4a4a5e;
+        color: #e0e0e0;
+    }
+
+    body.dark-mode input:focus {
+        border-color: #3b82f6;
+        background: rgba(50, 50, 70, 0.9);
     }
 
     button {
-        padding: 12px 25px;
+        padding: 12px 24px;
+        background: #3b82f6;
+        color: white;
         border: none;
-        border-radius: 30px;
-        background: cyan;
-        color: black;
-        font-weight: bold;
+        border-radius: 10px;
+        font-weight: 600;
         cursor: pointer;
-        font-size: 16px;
-        box-shadow: 0 0 15px cyan, 0 0 30px #00ffff66;
-        transition: 0.3s;
+        transition: all 0.3s ease;
     }
 
     button:hover {
-        background: #00ffff;
-        color: black;
-        transform: scale(1.05);
-    }
-
-    #results {
-        width: 90%;
-        max-width: 600px;
-        margin-top: 30px;
-    }
-
-    .record {
-        background: rgba(0, 0, 0, 0.7);
-        border: 1px solid cyan;
-        border-radius: 15px;
-        padding: 15px;
-        margin-bottom: 15px;
-        box-shadow: 0 0 20px cyan, 0 0 40px #00ffff33;
-        animation: fadeIn 0.8s ease-in-out;
-    }
-
-    .record p {
-        margin: 6px 0;
-        color: #d1ffff;
-        font-size: 14px;
-    }
-
-    .copy-btn {
-        margin-top: 10px;
-        padding: 6px 12px;
-        font-size: 14px;
-        border-radius: 10px;
-        background: #00ffff66;
-        color: black;
-        font-weight: bold;
-        cursor: pointer;
-        border: none;
-        box-shadow: 0 0 5px cyan;
-        transition: 0.2s;
-    }
-
-    .copy-btn:hover {
-        background: #00ffff;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        background: #2563eb;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
     }
 
     #loader {
-        margin-top: 25px;
-        font-size: 18px;
-        color: cyan;
-        text-shadow: 0 0 10px cyan;
+        text-align: center;
+        padding: 20px;
+        color: #3b82f6;
+        font-weight: 600;
         display: none;
     }
 
-    .telegram-btn {
+    .record {
+        background: #f9fafb;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+
+    body.dark-mode .record {
+        background: rgba(45, 45, 60, 0.5);
+        border-color: #4a4a5e;
+    }
+
+    .record p {
+        margin: 8px 0;
+        color: #374151;
+        transition: color 0.3s ease;
+    }
+
+    body.dark-mode .record p {
+        color: #e0e0e0;
+    }
+
+    .record strong {
+        color: #1f2937;
+        font-weight: 600;
+    }
+
+    body.dark-mode .record strong {
+        color: #c0c0c0;
+    }
+
+    .copy-btn {
+        width: 100%;
+        margin-top: 10px;
+        background: #10b981;
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+
+    .copy-btn:hover {
+        background: #059669;
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 40px;
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    body.dark-mode .no-results {
+        color: #a0a0a0;
+    }
+
+    .footer {
+        text-align: center;
+        padding: 20px;
+        color: #6b7280;
+        font-size: 0.9rem;
+        border-top: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+
+    body.dark-mode .footer {
+        color: #a0a0a0;
+        border-top-color: #4a4a5e;
+    }
+
+    .footer-credit {
+        margin-top: 8px;
+        font-size: 0.85rem;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .footer-credit a {
+        color: #0088cc;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .contact-btn {
         position: fixed;
         bottom: 20px;
         right: 20px;
+        width: 60px;
+        height: 60px;
         background: #0088cc;
-        color: white;
-        padding: 12px 18px;
-        border-radius: 50px;
-        box-shadow: 0 0 15px #00aaff, 0 0 30px #00aaff55;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 136, 204, 0.4);
+        transition: all 0.3s ease;
+        z-index: 1000;
         text-decoration: none;
-        font-weight: bold;
-        font-size: 14px;
-        transition: 0.3s;
+        font-size: 1.8rem;
     }
 
-    .telegram-btn:hover {
+    .contact-btn:hover {
         transform: scale(1.1);
-        background: #00aaff;
+        box-shadow: 0 6px 20px rgba(0, 136, 204, 0.6);
     }
 
-    footer {
-        margin-top: auto;
-        padding: 20px;
-        text-align: center;
-        color: #00ffff;
-        text-shadow: 0 0 15px cyan;
-        font-weight: bold;
+    @media (max-width: 768px) {
+        body {
+            padding: 10px;
+        }
+
+        .container {
+            border-radius: 16px;
+        }
+
+        .header {
+            padding: 12px 14px;
+        }
+
+        .content {
+            padding: 20px 14px;
+        }
+
+        .page-title {
+            font-size: 1.35rem;
+            margin-bottom: 6px;
+        }
+
+        .page-subtitle {
+            font-size: 0.82rem;
+            margin-bottom: 18px;
+        }
+
+        .search-box {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .logo {
+            width: 32px;
+            height: 32px;
+        }
+
+        .logo-text {
+            font-size: 0.95rem;
+        }
+
+        .logo-section {
+            gap: 8px;
+        }
+
+        .back-btn {
+            padding: 6px 12px;
+            font-size: 0.82rem;
+        }
+
+        .theme-toggle {
+            width: 42px;
+            height: 22px;
+            margin-right: 6px;
+        }
+
+        .theme-toggle::before {
+            width: 18px;
+            height: 18px;
+        }
+
+        .theme-toggle.active::before {
+            transform: translateX(20px);
+        }
+
+        .contact-btn {
+            width: 50px;
+            height: 50px;
+            bottom: 12px;
+            right: 12px;
+            font-size: 1.5rem;
+        }
+
+        .record {
+            padding: 14px;
+        }
+
+        .footer {
+            padding: 16px 12px;
+            font-size: 0.8rem;
+        }
+
+        .footer-credit {
+            font-size: 0.78rem;
+        }
     }
 </style>
+
 </head>
 <body>
 
-<div class="logo">
-    <img src="images/talha_logo.png" alt="Talha Logo">
+<!-- Page Loader -->
+<div id="pageLoader">
+    <img src="images/talha_logo.png" alt="Logo" class="loader-logo">
+    <div class="loader-spinner"></div>
 </div>
 
-<h1>TALHA HUB DATABASE</h1>
-
-<div class="search-box">
-    <input type="text" id="phoneInput" placeholder="Enter Phone Number">
-    <button onclick="fetchData()">Search</button>
+<div class="neon-bg">
+    <div class="neon-circle"></div>
+    <div class="neon-circle"></div>
+    <div class="neon-circle"></div>
+    <div class="neon-circle"></div>
 </div>
 
-<div id="loader">Fetching data...</div>
-<div id="results"></div>
+<div class="container">
+    <div class="header">
+        <div class="logo-section">
+            <img src="images/talha_logo.png" alt="TALHA HUB Logo" class="logo">
+            <div class="logo-text">TALHA HUB</div>
+        </div>
+        <div class="header-controls">
+            <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()"></div>
+            <a href="index.html" class="back-btn">← Back</a>
+        </div>
+    </div>
 
-<a href="https://t.me/legendtalha" target="_blank" class="telegram-btn">📢 Join Telegram</a>
+    <div class="content">
+        <h1 class="page-title">🗃️ Database Search</h1>
+        <p class="page-subtitle">Search phone number records in our database</p>
 
-<footer>POWERED BY TALHA SHAIKH 💯</footer>
+        <div class="search-box">
+            <input type="text" id="phoneInput" placeholder="Enter Phone Number">
+            <button onclick="fetchData()">Search</button>
+        </div>
+
+        <div id="loader">Fetching data...</div>
+        <div id="results"></div>
+    </div>
+
+    <div class="footer">
+        All rights reserved by Talha 💯
+        <div class="footer-credit">Redesign by <a href="https://t.me/MIRHADII07" target="_blank">@MIRHADII07</a></div>
+    </div>
+</div>
+
+<!-- Contact Us Button -->
+<a href="https://t.me/Op_talha_07" target="_blank" class="contact-btn">
+    📞
+</a>
 
 <script>
 async function fetchData() {
@@ -200,7 +586,7 @@ async function fetchData() {
         loader.style.display = 'none';
 
         if (!data.success || !data.records || data.records.length === 0) {
-            resultsDiv.innerHTML = '<p style="text-align:center;color:#ff6666;">No data found.</p>';
+            resultsDiv.innerHTML = '<div class="no-results">No data found.</div>';
             return;
         }
 
@@ -220,7 +606,7 @@ async function fetchData() {
 
     } catch (error) {
         loader.style.display = 'none';
-        resultsDiv.innerHTML = '<p style="text-align:center;color:#ff6666;">Error fetching data.</p>';
+        resultsDiv.innerHTML = '<div class="no-results" style="color:#ef4444;">Error fetching data.</div>';
         console.error('Fetch error:', error);
     }
 }
@@ -233,6 +619,27 @@ function copyAll(mobile, name, cnic, address, country) {
         console.error('Copy failed:', err);
     });
 }
+
+function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+    document.getElementById('themeToggle').classList.toggle('active');
+    localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('themeToggle').classList.add('active');
+    }
+});
+
+// Hide page loader
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        document.getElementById('pageLoader').classList.add('hidden');
+    }, 800);
+});
 </script>
 
 </body>
