@@ -4,220 +4,554 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TALHA HUB Temp Mail</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* CSS Styles for the Colorful Dark Theme UI */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #1a1a2e; /* Dark background */
-            color: #ffffff;
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5e6f0 0%, #e8f4f8 100%);
             display: flex;
             justify-content: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 600px;
+            align-items: center;
             padding: 20px;
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+            transition: background 0.5s ease;
+        }
+        body.dark-mode { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+        .neon-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+        .neon-circle { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.4; animation: float 20s infinite ease-in-out; }
+        .neon-circle:nth-child(1) { width: 300px; height: 300px; background: linear-gradient(45deg, #ff006e, #8338ec); top: -100px; left: -100px; animation-duration: 25s; }
+        .neon-circle:nth-child(2) { width: 250px; height: 250px; background: linear-gradient(45deg, #06ffa5, #00d9ff); top: 50%; right: -100px; animation-duration: 30s; animation-delay: -5s; }
+        .neon-circle:nth-child(3) { width: 350px; height: 350px; background: linear-gradient(45deg, #ffbe0b, #fb5607); bottom: -150px; left: 20%; animation-duration: 35s; animation-delay: -10s; }
+        .neon-circle:nth-child(4) { width: 200px; height: 200px; background: linear-gradient(45deg, #7209b7, #3a0ca3); top: 20%; right: 30%; animation-duration: 28s; animation-delay: -15s; }
+        @keyframes float { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 25% { transform: translate(100px, 100px) rotate(90deg); } 50% { transform: translate(-50px, 150px) rotate(180deg); } 75% { transform: translate(150px, -50px) rotate(270deg); } }
+        body.dark-mode .neon-circle { opacity: 0.3; filter: blur(80px); }
+
+        .main-container {
+            width: 100%;
+            max-width: 700px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+        body.dark-mode .main-container { background: rgba(30, 30, 46, 0.95); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px);
+            overflow: hidden;
         }
 
-        /* --- Header Section --- */
         .header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding: 10px 0;
-            border-bottom: 1px solid #3d3d5c;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e5e7eb;
+            transition: border-color 0.3s ease;
+        }
+        body.dark-mode .header { border-bottom-color: #4a4a5e; }
+        .header-controls { display: flex; align-items: center; gap: 10px; }
+        .theme-toggle { width: 50px; height: 26px; background: #6b7280; border-radius: 13px; position: relative; cursor: pointer; transition: background 0.3s ease; margin-right: 10px; }
+        .theme-toggle.active { background: #3b82f6; }
+        .theme-toggle::before { content: ''; position: absolute; width: 22px; height: 22px; border-radius: 50%; background: white; top: 2px; left: 2px; transition: transform 0.3s ease; }
+        .theme-toggle.active::before { transform: translateX(24px); }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        /* Style for the actual logo image */
-        .app-logo {
-            height: 40px; /* Adjust height as needed for your logo */
-            width: auto;
-            margin-right: 15px;
+        .logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
         }
 
-        /* Fallback for broken image or if logo is not found */
-        .app-logo[src="talha_logo.png"] {
-            line-height: 40px; 
-            text-align: center;
-            font-size: 0.8em;
-            color: #b0b0d0;
-        }
-
-        .app-title {
-            font-size: 1.5em;
-            font-weight: 300;
-        }
-
-        .app-title strong {
+        .logo-text {
+            font-size: 1.2rem;
             font-weight: 700;
-            color: #ff6e9a; /* Bright Pink/Magenta color for TALHA HUB */
+            color: #1f2937;
         }
 
-        .app-subtitle {
-            font-size: 0.8em;
-            color: #b0b0d0;
-            margin-top: 5px;
+        .back-btn {
+            padding: 8px 16px;
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            text-decoration: none;
         }
 
-        /* --- Card Styles --- */
+        .back-btn:hover {
+            background: #4b5563;
+            transform: translateY(-2px);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+            text-align: center;
+            transition: color 0.3s ease;
+        }
+
+        body.dark-mode .page-title {
+            color: #e0e0e0;
+        }
+
+        .page-subtitle {
+            color: #6b7280;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        body.dark-mode .page-subtitle {
+            color: #a0a0a0;
+        }
+
         .card {
-            background-color: #2a2a4a;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .card {
+            background: rgba(45, 45, 60, 0.6);
+            border-color: #4a4a5e;
         }
 
         .card-header {
-            font-size: 1.4em;
+            font-size: 1.1rem;
             font-weight: 600;
-            color: #8c8cff; /* Light purple accent */
+            color: #1f2937;
             margin-bottom: 15px;
+            transition: color 0.3s ease;
         }
 
-        /* --- Email Box --- */
+        body.dark-mode .card-header {
+            color: #c0c0c0;
+        }
+
         #email-display {
-            background-color: #1a1a2e;
-            border: 1px solid #3d3d5c;
+            background: white;
+            border: 2px solid #e5e7eb;
             padding: 15px;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: 500;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
             text-align: center;
             margin-bottom: 15px;
             cursor: pointer;
+            color: #1f2937;
+            transition: all 0.3s ease;
         }
 
-        /* --- Button Styles --- */
+        body.dark-mode #email-display {
+            background: rgba(35, 35, 50, 0.8);
+            border-color: #4a4a5e;
+            color: #e0e0e0;
+        }
+
+        #email-display:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
         .btn {
             padding: 12px 20px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 1em;
+            font-size: 1rem;
             font-weight: 600;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
             width: 100%;
             margin-bottom: 10px;
         }
 
         .btn-generate {
-            background-color: #ff6e9a; /* Pink/Purple */
-            color: #ffffff;
+            background: #3b82f6;
+            color: white;
         }
 
         .btn-generate:hover {
-            background-color: #ff5480;
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
         }
 
         .btn-refresh {
-            background-color: #ffcc00; /* Yellow */
-            color: #1a1a2e;
+            background: #10b981;
+            color: white;
         }
 
         .btn-refresh:hover {
-            background-color: #e0b300;
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
         }
 
         .btn-clear {
-            background-color: #4a4a6e;
-            color: #ffffff;
+            background: #6b7280;
+            color: white;
         }
 
         .btn-clear:hover {
-            background-color: #3d3d5c;
+            background: #4b5563;
+            transform: translateY(-2px);
         }
 
-        /* --- Inbox and Message Styles --- */
         #inbox-list {
             list-style: none;
             padding: 0;
-            max-height: 250px;
+            max-height: 300px;
             overflow-y: auto;
         }
 
         .inbox-item {
-            background-color: #3d3d5c;
-            padding: 10px;
-            margin-bottom: 8px;
-            border-radius: 6px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
         }
 
         .inbox-item:hover {
-            background-color: #4a4a6e;
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
         }
 
         .inbox-item strong {
             display: block;
-            font-size: 1em;
-            color: #ffcc00; /* Yellow for sender */
+            font-size: 0.95rem;
+            color: #1f2937;
+            margin-bottom: 4px;
         }
 
         .inbox-item span {
-            font-size: 0.8em;
-            color: #b0b0d0;
+            font-size: 0.85rem;
+            color: #6b7280;
         }
 
         #message-content {
-            white-space: pre-wrap; /* Preserve formatting in the message body */
-            min-height: 100px;
-            background-color: #1a1a2e;
+            white-space: pre-wrap;
+            min-height: 120px;
+            background: white;
+            border: 2px solid #e5e7eb;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 10px;
             overflow-x: hidden;
-            border: 1px solid #3d3d5c;
+            color: #374151;
+            font-size: 0.95rem;
         }
 
         .status {
-            font-size: 0.9em;
-            color: #b0b0d0;
+            font-size: 0.85rem;
+            color: #6b7280;
             text-align: center;
             margin-top: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+            font-size: 0.9rem;
+            border-top: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .footer {
+            color: #a0a0a0;
+            border-top-color: #4a4a5e;
+        }
+
+        .footer-credit {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .footer-credit a {
+            color: #0088cc;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        body.dark-mode .footer-credit a {
+            color: #3b82f6;
+        }
+
+        .contact-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: #0088cc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 136, 204, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            text-decoration: none;
+            font-size: 1.8rem;
+        }
+
+        .contact-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 136, 204, 0.6);
+        }
+
+        .footer-credit {
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+
+        .footer-credit a {
+            color: #0088cc;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer-credit a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .main-container {
+                border-radius: 16px;
+            }
+
+            .header {
+                padding: 12px 14px;
+            }
+
+            .content {
+                padding: 20px 14px;
+            }
+
+            .page-title {
+                font-size: 1.35rem;
+                margin-bottom: 6px;
+            }
+
+            .page-subtitle {
+                font-size: 0.82rem;
+                margin-bottom: 18px;
+            }
+
+            .logo {
+                width: 32px;
+                height: 32px;
+            }
+
+            .logo-text {
+                font-size: 0.95rem;
+            }
+
+            .logo-section {
+                gap: 8px;
+            }
+
+            .back-btn {
+                padding: 6px 12px;
+                font-size: 0.82rem;
+            }
+
+            .theme-toggle {
+                width: 42px;
+                height: 22px;
+                margin-right: 6px;
+            }
+
+            .theme-toggle::before {
+                width: 18px;
+                height: 18px;
+            }
+
+            .theme-toggle.active::before {
+                transform: translateX(20px);
+            }
+
+            .contact-btn {
+                width: 50px;
+                height: 50px;
+                bottom: 12px;
+                right: 12px;
+                font-size: 1.5rem;
+            }
+
+            .footer {
+                padding: 16px 12px;
+                font-size: 0.8rem;
+            }
+
+            .footer-credit {
+                font-size: 0.78rem;
+            }
+        }
+
+        body.dark-mode .logo-text, body.dark-mode .page-title { color: #e0e0e0; }
+        body.dark-mode .page-subtitle { color: #a0a0a0; }
+        body.dark-mode input, body.dark-mode .card { background: rgba(45, 45, 60, 0.8); border-color: #4a4a5e; }
+        body.dark-mode input:focus { border-color: #3b82f6; background: rgba(50, 50, 70, 0.9); }
+        body.dark-mode .card-header { color: #c0c0c0; }
+        body.dark-mode #email-display { color: #e0e0e0; }
+        body.dark-mode #inbox-list li { background: rgba(45, 45, 60, 0.5); border-color: #4a4a5e; color: #e0e0e0; }
+        body.dark-mode #inbox-list li:hover { background: rgba(55, 55, 75, 0.7); }
+        body.dark-mode .btn { border: none; }
+        body.dark-mode .btn-generate:hover, body.dark-mode .btn-refresh:hover, body.dark-mode .btn-clear:hover { transform: translateY(-2px); }
+
+        .neon-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #2f4f7f, #2f4f7f);
+            background-size: 200% 200%;
+            animation: gradient 10s ease infinite;
+            z-index: -1;
+        }
+
+        .neon-circle {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #03a9f4, #03a9f4);
+            background-size: 200% 200%;
+            animation: gradient 10s ease infinite;
+            filter: blur(20px);
+        }
+
+        .neon-circle:nth-child(1) {
+            top: 20%;
+            left: 30%;
+            animation-delay: 0s;
+        }
+
+        .neon-circle:nth-child(2) {
+            top: 50%;
+            left: 70%;
+            animation-delay: 2s;
+        }
+
+        .neon-circle:nth-child(3) {
+            top: 80%;
+            left: 10%;
+            animation-delay: 4s;
+        }
+
+        .neon-circle:nth-child(4) {
+            top: 30%;
+            left: 50%;
+            animation-delay: 6s;
+        }
+
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="neon-bg"><div class="neon-circle"></div><div class="neon-circle"></div><div class="neon-circle"></div><div class="neon-circle"></div></div>
+    <div class="main-container">
         <div class="header">
-            <img src="talha_logo.png" alt="Talha Logo" class="app-logo">
-            <div>
-                <div class="app-title">⚡ TEMP MAIL BY <strong>TALHA HUB</strong></div>
-                <div class="app-subtitle">Disposable temp-mail — generate, check inbox and read messages (10 minute expiry)</div>
+            <div class="logo-section">
+                <img src="images/talha_logo.png" alt="TALHA HUB Logo" class="logo">
+                <div class="logo-text">TALHA HUB</div>
+            </div>
+            <div class="header-controls">
+                <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()"></div>
+                <a href="index.html" class="back-btn">← Back</a>
             </div>
         </div>
 
-        <div class="card">
-            <button class="btn btn-generate" onclick="generateEmail()">✨ Generate Email</button>
+        <div class="content">
+            <h1 class="page-title">✉️ Temp Mail</h1>
+            <p class="page-subtitle">Disposable temporary email — Auto-expires in 10 minutes</p>
 
-            <div class="card-header">Your Temp Email</div>
-            <div id="email-display" title="Click to copy email">
-                --
+            <div class="card">
+                <button class="btn btn-generate" onclick="generateEmail()">✨ Generate Email</button>
+
+                <div class="card-header">Your Temp Email</div>
+                <div id="email-display" title="Click to copy email">
+                    --
+                </div>
+                <p class="status">Email auto-expires after 10 minutes.</p>
+
+                <button class="btn btn-refresh" onclick="checkInbox()">🔄 Refresh Inbox</button>
+                <button class="btn btn-clear" onclick="clearEmail()">🧹 Clear Email</button>
+                <div class="status" id="status-text">Status: Idle</div>
             </div>
-            <p class="status">Email auto-expires after 10 minutes.</p>
 
-            <button class="btn btn-refresh" onclick="checkInbox()">⬇️ Refresh Inbox</button>
-            <button class="btn btn-clear" onclick="clearEmail()">🧹 Clear Email</button>
-            <div class="status" id="status-text">Status: Idle</div>
+            <div class="card">
+                <div class="card-header">Inbox (<span id="inbox-count">0</span>)</div>
+                <ul id="inbox-list">
+                    <li style="color: #6b7280; padding: 10px; text-align: center;">No inbox yet. Generate an email to start.</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Message</div>
+                <div id="message-content">No message selected.</div>
+            </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">Inbox (<span id="inbox-count">0</span>)</div>
-            <ul id="inbox-list">
-                <li id="inbox-placeholder">No inbox yet. Generate an email to start.</li>
-            </ul>
-        </div>
-
-        <div class="card">
-            <div class="card-header">Message</div>
-            <div id="message-content">No message selected.</div>
+        <div class="footer">
+            All rights reserved by Talha 💯
+            <div class="footer-credit">Redesign by <a href="https://t.me/MIRHADII07" target="_blank">@MIRHADII07</a></div>
         </div>
     </div>
+
+    <!-- Contact Us Button -->
+    <a href="https://t.me/Op_talha_07" target="_blank" class="contact-btn">
+        📞
+    </a>
 
     <script>
         // API Base URLs and your API key
@@ -271,6 +605,7 @@
             inboxList.innerHTML = '<li id="inbox-placeholder" style="color: #b0b0d0;">No inbox yet. Generate an email to start.</li>';
             inboxCount.textContent = '0';
             messageContent.textContent = 'No message selected.';
+            setStatus('Ready.');
 
             try {
                 const response = await fetch(BASE_URLS.generate);
@@ -298,145 +633,4 @@
         async function checkInbox() {
             if (!currentEmail) {
                 setStatus('Please generate an email first.');
-                return;
-            }
-
-            setStatus('Checking inbox...');
-
-            try {
-                const url = BASE_URLS.inbox + currentEmail;
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (data.status && Array.isArray(data.result)) {
-                    inboxList.innerHTML = ''; // Clear existing list
-                    inboxCount.textContent = data.result.length;
-
-                    if (data.result.length === 0) {
-                        inboxList.innerHTML = '<li style="color: #b0b0d0;">Inbox is empty. Try refreshing.</li>';
-                    } else {
-                        data.result.forEach(mail => {
-                            const li = document.createElement('li');
-                            li.className = 'inbox-item';
-                            li.setAttribute('data-message-id', mail.id);
-                            const sender = mail.from.match(/<([^>]+)>/) ? mail.from.match(/<([^>]+)>/)[1] : mail.from;
-                            li.innerHTML = `
-                                <strong>${sender}</strong>
-                                <span>Subject: ${mail.subject}</span>
-                            `;
-                            li.addEventListener('click', () => {
-                                loadMessage(mail.id);
-                            });
-                            inboxList.appendChild(li);
-                        });
-                    }
-                    setStatus(`Inbox checked. ${data.result.length} new messages.`);
-                } else {
-                    setStatus('Error checking inbox: ' + (data.message || 'Unknown error'));
-                    inboxList.innerHTML = '<li style="color: red;">Failed to load inbox.</li>';
-                    inboxCount.textContent = '0';
-                }
-
-            } catch (error) {
-                console.error('Fetch error for inbox:', error);
-                setStatus('Network error. Check console.');
-            }
-        }
-
-        /**
-         * 3. Loads the content of a specific message. (PERMANENT FIX FOR NESTED DATA AND ROBUST ERROR HANDLING)
-         * @param {string} messageId - The ID of the message to load.
-         */
-        async function loadMessage(messageId) {
-            if (!currentEmail) {
-                setStatus('Please generate an email first.');
-                return;
-            }
-
-            setStatus(`Loading message ID: ${messageId}...`);
-            messageContent.textContent = 'Loading...';
-
-            try {
-                const url = `${BASE_URLS.message}${currentEmail}&messageid=${messageId}`;
-                
-                const response = await fetch(url);
-
-                if (!response.ok) {
-                     // Check if response is not 200 OK (e.g., 404 Not Found, 500 Server Error)
-                    const statusText = response.statusText || 'Unknown Network Status';
-                    setStatus(`Network Error loading message: ${statusText}`);
-                    messageContent.textContent = `Failed to load message. Network error: ${response.status} (${statusText})`;
-                    return;
-                }
-
-                const data = await response.json();
-
-                // *** CONSOLE LOGGING FOR DIAGNOSTICS ***
-                console.log("--- MESSAGE API RESPONSE ---");
-                console.log("URL Used:", url);
-                console.log("Response Data:", data);
-                console.log("----------------------------");
-                // *** END: CONSOLE LOGGING ***
-
-                // --- PRIORITY 1: CHECK FOR THE NESTED 'data.data' STRUCTURE (From your RAW data) ---
-                if (data.code === 0 && data.data) { 
-                    let body = '';
-                    const messageData = data.data; // The object containing 'html', 'id', etc.
-
-                    // Check for message content inside the nested 'data' object
-                    if (messageData.text) {
-                        body = messageData.text; 
-                    } else if (messageData.html) {
-                        body = messageData.html; 
-                    } 
-                    
-                    if (body) {
-                        // Replace HTML line breaks (<br>) with newlines for clean display
-                        messageContent.textContent = body.replace(/<br>/g, '\n'); 
-                        setStatus(`Message loaded!`); 
-                    } else {
-                        // Content is empty/unreadable in the primary fields
-                        messageContent.textContent = `Message body is empty or unreadable (Nested data format). Full response data: \n\n` + JSON.stringify(data, null, 2);
-                        setStatus('Message content missing.');
-                    }
-                // --- PRIORITY 2: FALLBACK CHECK FOR THE 'status/result' STRUCTURE (The older format) ---
-                } else if (data.status === true && data.result) {
-                    let body = data.result.text || data.result.html;
-                     if (body) {
-                        messageContent.textContent = body.replace(/<br>/g, '\n'); 
-                        setStatus(`Message loaded!`); 
-                    } else {
-                        setStatus('API Error loading message: Content field is empty (Fallback format).');
-                        messageContent.textContent = 'Failed to load message. Content field is empty.';
-                    }
-                } else {
-                    // Handle API errors based on 'code', 'message', or 'status' fields (e.g., expired message)
-                    setStatus('API Error loading message: ' + (data.message || 'Unknown error'));
-                    messageContent.textContent = 'Failed to load message. API error: ' + (data.message || 'Unknown');
-                }
-
-            } catch (error) {
-                console.error('Network or JSON parsing error for message:', error);
-                setStatus('Network or parsing error. Check console.');
-                messageContent.textContent = 'Network error or unable to read message data.';
-            }
-        }
-
-        /**
-         * Clears the current email and resets the UI.
-         */
-        function clearEmail() {
-            currentEmail = '';
-            emailDisplay.textContent = '--';
-            inboxList.innerHTML = '<li id="inbox-placeholder" style="color: #b0b0d0;">No inbox yet. Generate an email to start.</li>';
-            inboxCount.textContent = '0';
-            messageContent.textContent = 'No message selected.';
-            setStatus('Cleared and ready to generate new email.');
-        }
-
-        // Initial setup
-        setStatus('Ready.');
-    </script>
-</body>
-</html>
-
+         
