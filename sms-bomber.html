@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TALHA HUB — SMS Bomber</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* Loading Animation */
+    #pageLoader {position:fixed;top:0;left:0;width:100%;height:100%;background:#1f2937;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;transition:opacity 0.5s ease, visibility 0.5s ease;}
+    #pageLoader.hidden {opacity:0;visibility:hidden;}
+    .loader-logo {width:70px;height:70px;border-radius:50%;animation:pulse 1.5s ease-in-out infinite;}
+    @keyframes pulse {0%, 100% {transform:scale(1);opacity:1;}50% {transform:scale(1.1);opacity:0.8;}}
+    .loader-spinner {margin-top:25px;width:50px;height:50px;position:relative;}
+    .loader-spinner::before,.loader-spinner::after {content:'';position:absolute;width:100%;height:100%;border-radius:50%;border:3px solid transparent;border-top-color:#3b82f6;}
+    .loader-spinner::before {animation:spin 1s linear infinite;}
+    .loader-spinner::after {border-top-color:#10b981;animation:spin 1.5s linear infinite reverse;}
+    @keyframes spin {to {transform:rotate(360deg);}}
+
+    body {
+      min-height: 100vh;
+      background: #f3f4f6;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+      padding-top: 40px;
+      position: relative;
+      overflow-x: hidden;
+      overflow-y: auto;
+      transition: background 0.3s ease;
+    }
+    body.dark-mode { background: #1f2937; }
+    .neon-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+    .neon-circle { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.4; animation: float 20s infinite ease-in-out; }
+    .neon-circle:nth-child(1) { width: 300px; height: 300px; background: linear-gradient(45deg, #ff006e, #8338ec); top: -100px; left: -100px; animation-duration: 25s; }
+    .neon-circle:nth-child(2) { width: 250px; height: 250px; background: linear-gradient(45deg, #06ffa5, #00d9ff); top: 50%; right: -100px; animation-duration: 30s; animation-delay: -5s; }
+    .neon-circle:nth-child(3) { width: 350px; height: 350px; background: linear-gradient(45deg, #ffbe0b, #fb5607); bottom: -150px; left: 20%; animation-duration: 35s; animation-delay: -10s; }
+    .neon-circle:nth-child(4) { width: 200px; height: 200px; background: linear-gradient(45deg, #7209b7, #3a0ca3); top: 20%; right: 30%; animation-duration: 28s; animation-delay: -15s; }
+    @keyframes float { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 25% { transform: translate(100px, 100px) rotate(90deg); } 50% { transform: translate(-50px, 150px) rotate(180deg); } 75% { transform: translate(150px, -50px) rotate(270deg); } }
+    body.dark-mode .neon-circle { opacity: 0.3; filter: blur(80px); }
+
+    .container {
+      width: 100%;
+      max-width: 550px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    body.dark-mode .container { background: rgba(30, 30, 46, 0.95); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); }
+
+    @media (max-width: 768px) {
+      .container {
+        min-height: calc(100vh - 40px);
+      }
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 30px;
+      border-bottom: 1px solid #e5e7eb;
+      transition: border-color 0.3s ease;
+    }
+    body.dark-mode .header { border-bottom-color: #4a4a5e; }
+    .header-controls { display: flex; align-items: center; gap: 10px; }
+    .theme-toggle { width: 50px; height: 26px; background: #6b7280; border-radius: 13px; position: relative; cursor: pointer; transition: background 0.3s ease; margin-right: 10px; }
+    .theme-toggle.active { background: #3b82f6; }
+    .theme-toggle::before { content: ''; position: absolute; width: 22px; height: 22px; border-radius: 50%; background: white; top: 2px; left: 2px; transition: transform 0.3s ease; }
+    .theme-toggle.active::before { transform: translateX(24px); }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    .logo-text {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #1f2937;
+    }
+
+    .back-btn {
+      padding: 8px 16px;
+      background: #6b7280;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      text-decoration: none;
+    }
+
+    .back-btn:hover {
+      background: #4b5563;
+      transform: translateY(-2px);
+    }
+
+    .content {
+      padding: 30px;
+      flex: 1;
+    }
+
+    .page-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .page-subtitle {
+      color: #6b7280;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 0.95rem;
+    }
+
+    .warning-box {
+      background: #fef3c7;
+      border: 2px solid #f59e0b;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 25px;
+      text-align: center;
+    }
+
+    .warning-box p {
+      color: #92400e;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.3s ease;
+      background: #f9fafb;
+      color: #1f2937;
+    }
+
+    input:focus, select:focus {
+      border-color: #3b82f6;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: #ef4444;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #dc2626;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .result {
+      margin-top: 20px;
+      padding: 20px;
+      background: #d1fae5;
+      border: 2px solid #10b981;
+      border-radius: 12px;
+      text-align: center;
+      display: none;
+    }
+
+    .result.error {
+      background: #fee2e2;
+      border-color: #ef4444;
+    }
+
+    .result h3 {
+      color: #065f46;
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .result.error h3 {
+      color: #991b1b;
+    }
+
+    .result p {
+      color: #047857;
+      font-size: 0.95rem;
+    }
+
+    .result.error p {
+      color: #b91c1c;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: #6b7280;
+      font-size: 0.9rem;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .contact-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background: #0088cc;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 136, 204, 0.4);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      text-decoration: none;
+      font-size: 1.8rem;
+    }
+
+    .contact-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0, 136, 204, 0.6);
+    }
+
+    .footer-credit {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .footer-credit a {
+      color: #0088cc;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .footer-credit a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      .container {
+        border-radius: 16px;
+      }
+
+      .header {
+        padding: 12px 14px;
+      }
+
+      .content {
+        padding: 20px 14px;
+      }
+
+      .page-title {
+        font-size: 1.35rem;
+        margin-bottom: 6px;
+      }
+
+      .page-subtitle {
+        font-size: 0.82rem;
+        margin-bottom: 18px;
+      }
+
+      .logo {
+        width: 32px;
+        height: 32px;
+      }
+
+      .logo-text {
+        font-size: 0.95rem;
+      }
+
+      .logo-section {
+        gap: 8px;
+      }
+
+      .back-btn {
+        padding: 6px 12px;
+        font-size: 0.82rem;
+      }
+
+      .theme-toggle {
+        width: 42px;
+        height: 22px;
+        margin-right: 6px;
+      }
+
+      .theme-toggle::before {
+        width: 18px;
+        height: 18px;
+      }
+
+      .theme-toggle.active::before {
+        transform: translateX(20px);
+      }
+
+      .contact-btn {
+        width: 50px;
+        height: 50px;
+        bottom: 12px;
+        right: 12px;
+        font-size: 1.5rem;
+      }
+
+      .footer {
+        padding: 16px 12px;
+        font-size: 0.8rem;
+      }
+
+      .footer-credit {
+        font-size: 0.78rem;
+      }
+    }
+  body.dark-mode .logo-text, body.dark-mode .page-title { color: #e0e0e0; }
+  body.dark-mode .page-subtitle, body.dark-mode .form-label { color: #a0a0a0; }
+  body.dark-mode input, body.dark-mode select { background: rgba(45, 45, 60, 0.8); border-color: #4a4a5e; color: #e0e0e0; }
+  body.dark-mode input:focus, body.dark-mode select:focus { border-color: #3b82f6; background: rgba(50, 50, 70, 0.9); }
+  body.dark-mode .footer { color: #a0a0a0; border-top-color: #4a4a5e; }
+  body.dark-mode .result { background: rgba(45, 45, 60, 0.5); border-color: #4a4a5e; }
+  </style>
+</head>
+<body>
+  <div id="pageLoader">
+    <img src="images/talha_logo.png" alt="Logo" class="loader-logo">
+    <div class="loader-spinner"></div>
+  </div>
+  <div class="neon-bg"><div class="neon-circle"></div><div class="neon-circle"></div><div class="neon-circle"></div><div class="neon-circle"></div></div>
+  <div class="container">
+    <div class="header">
+      <div class="logo-section">
+        <img src="images/talha_logo.png" alt="TALHA HUB Logo" class="logo">
+        <div class="logo-text">TALHA HUB</div>
+      </div>
+      <div class="header-controls">
+        <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()"></div>
+        <a href="index.html" class="back-btn">← Back</a>
+      </div>
+    </div>
+
+    <div class="content">
+      <h1 class="page-title">💣 SMS Bomber</h1>
+      <p class="page-subtitle">Send multiple SMS messages for testing purposes</p>
+
+      <div class="warning-box">
+        <p>⚠️ For Educational & Testing Purposes Only! Use Responsibly.</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Phone Number (with country code)</label>
+        <input type="tel" id="phoneNumber" placeholder="Enter phone number (e.g., 923001234567)">
+      </div>
+
+      <button id="sendBtn" onclick="sendSMS()">🚀 Send SMS</button>
+
+      <div class="result" id="result">
+        <h3 id="resultTitle">✅ Success</h3>
+        <p id="resultMessage"></p>
+      </div>
+    </div>
+
+    <div class="footer">
+      All rights reserved by Talha 💯
+      <div class="footer-credit">Redesign by <a href="https://t.me/MIRHADII07" target="_blank">@MIRHADII07</a></div>
+    </div>
+  </div>
+
+  <!-- Contact Us Button -->
+  <a href="https://t.me/Op_talha_07" target="_blank" class="contact-btn">
+    📞
+  </a>
+
+  <script>
+    async function sendSMS() {
+      const phoneNumber = document.getElementById('phoneNumber').value.trim();
+      const resultDiv = document.getElementById('result');
+      const resultTitle = document.getElementById('resultTitle');
+      const resultMessage = document.getElementById('resultMessage');
+      const sendBtn = document.getElementById('sendBtn');
+
+      if (!phoneNumber) {
+        alert("Please enter a phone number!");
+        return;
+      }
+
+      // Validate phone number format (must start with 92 and have 12 digits)
+      if (!/^92\d{10}$/.test(phoneNumber)) {
+        alert("Please enter a valid phone number with country code (e.g., 923001234567)");
+        return;
+      }
+
+      sendBtn.disabled = true;
+      // keep button label visually consistent with original style
+      const originalBtnText = sendBtn.textContent;
+      sendBtn.textContent = "Sending...";
+
+      // hide previous result
+      resultDiv.style.display = "none";
+      resultDiv.classList.remove('error');
+
+      try {
+        // SMS Bomber API endpoint
+        const apiUrl = `https://shadowscriptz.xyz/shadowapisv4/smsbomberapi.php?number=${encodeURIComponent(phoneNumber)}`;
+
+        const res = await fetch(apiUrl, { method: 'GET' });
+
+        // Read response as text, then try to parse JSON — this makes it robust to APIs returning plain text.
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          // If not JSON, use the raw text as message
+          data = {
+            message: text || (res.ok ? "Request completed." : "No response message."),
+            status: res.ok ? "success" : "error"
+          };
+        }
+
+        // Decide success vs failure
+        if ((data.status && data.status.toString().toLowerCase() === "success") || (data.message && res.ok)) {
+          resultDiv.classList.remove('error');
+          resultTitle.textContent = "✅ SMS Bomber Started!";
+          // Prefer API message when available, otherwise show a friendly fallback
+          resultMessage.textContent = data.message || `SMS bombing has been initiated for ${phoneNumber}`;
+          resultDiv.style.display = "block";
+        } else {
+          resultDiv.classList.add('error');
+          resultTitle.textContent = "❌ Failed to Send SMS";
+          resultMessage.textContent = data.message || "Please try again later.";
+          resultDiv.style.display = "block";
+        }
+      } catch (err) {
+        resultDiv.classList.add('error');
+        resultTitle.textContent = "❌ Error";
+        resultMessage.textContent = "Failed to send SMS. Please try again.";
+        resultDiv.style.display = "block";
+        console.error(err);
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = originalBtnText || "🚀 Send SMS";
+      }
+    }
+
+    function toggleTheme() { document.body.classList.toggle('dark-mode'); document.getElementById('themeToggle').classList.toggle('active'); localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light'); }
+    window.addEventListener('DOMContentLoaded', () => { const savedTheme = localStorage.getItem('theme'); if (savedTheme === 'dark') { document.body.classList.add('dark-mode'); document.getElementById('themeToggle').classList.add('active'); } });
+
+    // Hide page loader
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        document.getElementById('pageLoader').classList.add('hidden');
+      }, 800);
+    });
+  </script>
+</body>
+</html>
