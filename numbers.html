@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TALHA HUB - Mock OTP Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        :root{--gold:#f59e0b;--purple:#8E2DE2;--bg:#070608;--card:#111213;--muted:#9ca3af}
+        *{box-sizing:border-box}
+        body{margin:0;background:var(--bg);color:#e6edf3;font-family:Poppins,system-ui,Segoe UI,Arial}
+        .wrap{max-width:420px;margin:18px auto;padding:14px}
+        .header{display:flex;flex-direction:column;gap:10px}
+        .brand{font-weight:800;font-size:28px;background:linear-gradient(90deg,var(--purple),#d76dff,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+        .subtitle{color:var(--muted)}
+        .controls{display:flex;gap:8px;align-items:center;margin-top:8px}
+        select,button{background:#0f0f11;border:1px solid #222;padding:10px 12px;border-radius:10px;color:inherit}
+        button.gradient{background:linear-gradient(90deg,var(--gold),#ff66b3,var(--purple));border:none;color:#0b0b0b}
+        .card{background:var(--card);border-radius:14px;padding:14px;margin-top:16px;border-top:4px solid var(--purple)}
+        .selected{display:flex;flex-direction:column;align-items:center;gap:6px}
+        .selected .label{color:#d1d5db}
+        .number{font-weight:800;font-family:monospace;font-size:28px;color:var(--gold)}
+        h2{margin:18px 0 8px 0;font-size:16px}
+        table{width:100%;border-collapse:collapse}
+        thead th{font-size:12px;color:#9aa0a6;text-align:left;padding:8px 6px}
+        tbody td{padding:10px 6px;border-top:1px solid #1f1f1f}
+        .muted{color:var(--muted)}
+        .masked{font-family:monospace}
+        .status{color:#fbbf24;text-align:center;padding:10px 0}
+        .error{text-align:center;color:#f87171;padding:10px 0}
+        .analyze-btn{padding:8px;border-radius:8px;background:#0b0b0d;border:1px solid #222}
+        @media (max-width:420px){.wrap{margin:8px}}
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="header">
+            <div>
+                <div class="brand">TALHA HUB</div>
+                <div class="subtitle">VIP OTP Hub</div>
+            </div>
+            <div class="controls">
+                <select id="countrySelect"><option value="random">Select Country</option></select>
+                <button id="generateBtn">Generate Number</button>
+                <button id="refreshSmsBtn" class="gradient"><span style="display:inline-flex;align-items:center;gap:8px">&#x21bb; Refresh SMS</span></button>
+            </div>
+        </div><div class="card">
+        <div class="selected">
+            <div class="label">Selected Number</div>
+            <div id="randomNumberDisplay" class="number">Error loading list</div>
+            <div id="numberError" class="error" style="display:none"></div>
+        </div>
+    </div>
+
+    <h2>Recent Incoming OTP Messages (SMS)</h2>
+    <div id="smsStatus" class="status">Could not load SMS messages: Failed to fetch.</div>
+
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th class="muted">COUNTRY / PHONE</th>
+                    <th class="muted">MESSAGE</th>
+                    <th class="muted" style="width:72px;text-align:center">ANALYZE</th>
+                </tr>
+            </thead>
+            <tbody id="otpTableBody">
+                <tr><td colspan="3" style="text-align:center;color:#f87171;padding:18px">Could not load SMS messages: Failed to fetch.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Simple demo script to keep the UI interactive. Real API calls were omitted to avoid complex escaping.
+    document.getElementById('generateBtn').addEventListener('click', function(){
+        document.getElementById('randomNumberDisplay').textContent = '+123 4567 890';
+    });
+    document.getElementById('refreshSmsBtn').addEventListener('click', function(){
+        document.getElementById('smsStatus').textContent = 'Could not load SMS messages: Failed to fetch.';
+    });
+    feather.replace();
+</script>
+
+</body>
+</html>
