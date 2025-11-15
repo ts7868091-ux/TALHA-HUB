@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TALHA HUB – Temp Mail</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<meta name="monetag" content="b805f1bd7c6023d0341a4d15bd8fe547">
+
+<style>
+body {
+  font-family: 'Poppins', sans-serif;
+}
+.loader {
+  border: 4px solid rgba(255,255,255,0.15);
+  border-top: 4px solid #00b7ff;
+  border-radius: 50%;
+  width: 28px; height: 28px;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+@keyframes spin { 100% { transform: rotate(360deg);} }
+.card {
+  background: linear-gradient(145deg, #111827, #1f2937);
+  box-shadow: 0 0 25px rgba(0,191,255,0.2);
+}
+.glow-text {
+  text-shadow: 0 0 15px rgba(0,191,255,0.7);
+}
+/* ✅ Copy animation */
+.copied {
+  background-color: #22c55e !important;
+  transform: scale(1.1);
+  transition: all 0.3s ease;
+}
+</style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-6">
+
+<div class="w-full text-center mb-6">
+  <h1 class="text-4xl font-extrabold text-cyan-400 glow-text">💫 TALHA HUB TempMail 💫</h1>
+</div>
+
+<div class="w-full max-w-3xl space-y-8">
+
+  <div class="card rounded-2xl p-6 space-y-4">
+    <h2 class="text-xl font-bold text-green-400">Generate New Email</h2>
+    <button id="generateEmailBtn" class="w-full bg-cyan-600 hover:bg-cyan-700 px-4 py-3 rounded-xl font-semibold transition">⚙️ Generate Email</button>
+    <div class="space-y-2">
+      <p class="text-gray-400">Your Temporary Email:</p>
+      <div class="flex items-center justify-between bg-gray-800 p-3 rounded-lg">
+        <span id="generatedEmail" class="text-yellow-400 font-semibold break-all">---</span>
+        <button id="copyEmailBtn" class="bg-cyan-600 hover:bg-cyan-700 px-3 py-1 rounded-lg text-sm font-semibold transition">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <button onclick="window.location.href='custom.html'"
+    class="w-full bg-purple-600 hover:bg-purple-700 px-4 py-3 rounded-2xl font-bold text-lg transition shadow-md">
+    🧩 Create Custom Email
+  </button>
+
+  <div class="card rounded-2xl p-6 space-y-4">
+    <h2 class="text-xl font-bold text-green-400">📥 Inbox</h2>
+    <div class="flex gap-3">
+      <input id="emailInput" type="text" placeholder="Your temp email..." class="flex-1 p-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500">
+      <button id="checkInboxBtn" class="bg-cyan-600 hover:bg-cyan-700 px-4 py-2 rounded-lg font-semibold transition">Refresh</button>
+    </div>
+    <div id="messages" class="bg-gray-800 p-4 rounded-lg h-96 overflow-y-auto text-left space-y-3">
+      <p class="text-gray-400">No messages yet...</p>
+    </div>
+  </div>
+
+</div>
+
+<footer class="text-center mt-10 text-sm text-gray-400">
+  💫 Powered by TALHA HUB — 2025 💫
+</footer>
+
+<script src="https://fpyf8.com/88/tag.min.js" data-zone="174168" async data-cfasync="false"></script>
+
+<script>
+let currentEmail = "";
+let refreshInterval;
+
+// Generate new email
+document.getElementById('generateEmailBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('generateEmailBtn');
+  btn.innerHTML = '<div class="loader"></div>';
+  try {
+    const res = await fetch("https://api.internal.temp-mail.io/api/v3/email/new", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "application-name": "web",
+        "application-version": "4.0.0",
+        "x-cors-header": "iaWg3pchvFx48fY"
+      },
+      body: JSON.stringify({min_name_length:10, max_name_length:10})
+    });
+    const data = await res.json();
+    currentEmail = data.email;
+    document.getElementById('generatedEmail').textContent = currentEmail;
+    document.getElementById('emailInput').value = currentEmail;
+    btn.textContent = "⚙️ Generate Email";
+    fetchMessages();
+    startAutoRefresh();
+  } catch (err) {
+    btn.textContent = "⚙️ Generate Email";
+    alert("❌ Error generating email.");
+  }
+});
+
+// ✅ Copy email with animation
+document.getElementById('copyEmailBtn').addEventListener('click', async () => {
+  const text = document.getElementById('generatedEmail').textContent;
+  const copyBtn = document.getElementById('copyEmailBtn');
+  if (text && text !== "---") {
+    try {
+      await navigator.clipboard.writeText(text);
+      copyBtn.textContent = "✅ Copied!";
+      copyBtn.classList.add("copied");
+      setTimeout(() => {
+        copyBtn.textContent = "Copy";
+        copyBtn.classList.remove("copied");
+      }, 1500);
+    } catch (err) {
+      alert("❌ Copy failed");
+    }
+  }
+});
+
+// Fetch messages
+async function fetchMessages() {
+  const email = document.getElementById('emailInput').value.trim();
+  if(!email) return;
+  const msgDiv = document.getElementById('messages');
+  msgDiv.innerHTML = "<p class='text-gray-400'>⏳ Loading messages...</p>";
+
+  try {
+    const res = await fetch(`https://api.internal.temp-mail.io/api/v3/email/${email}/messages`, {
+      method: "GET",
+      headers: {
+        "accept":"*/*",
+        "content-type":"application/json",
+        "application-name":"web",
+        "application-version":"4.0.0",
+        "x-cors-header":"iaWg3pchvFx48fY"
+      }
+    });
+    const data = await res.json();
+    msgDiv.innerHTML = "";
+    if(!Array.isArray(data) || data.length === 0) {
+      msgDiv.innerHTML = "<p class='text-gray-400'>📭 No messages yet.</p>";
+      return;
+    }
+
+    data.forEach(msg => {
+      const div = document.createElement('div');
+      div.className = "border border-gray-700 rounded-lg p-3 hover:bg-gray-700 transition cursor-pointer";
+      div.innerHTML = `
+        <p class="text-blue-400 font-semibold">From: ${msg.from}</p>
+        <p class="text-yellow-400 font-semibold">Subject: ${msg.subject}</p>
+        <p class="text-gray-300">${msg.intro || "No preview available..."}</p>
+      `;
+      div.addEventListener('click', () => openMessage(msg));
+      msgDiv.appendChild(div);
+    });
+  } catch (e) {
+    msgDiv.innerHTML = "<p class='text-red-400'>⚠️ Error fetching messages</p>";
+  }
+}
+
+// Open message modal
+function openMessage(msg) {
+  const modal = document.createElement('div');
+  modal.className = "fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50";
+  modal.innerHTML = `
+    <div class="bg-gray-900 text-white rounded-2xl shadow-xl p-6 w-11/12 max-w-2xl relative">
+      <button class="absolute top-2 right-3 text-red-400 font-bold text-lg" id="closeModal">✖</button>
+      <h3 class="text-2xl font-bold text-cyan-400 mb-2">${msg.subject}</h3>
+      <p class="text-sm text-gray-400 mb-4">From: ${msg.from}</p>
+      <div class="bg-gray-800 p-4 rounded-lg max-h-96 overflow-y-auto text-gray-200">${msg.body_html || msg.body_text || "No content"}</div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  document.getElementById('closeModal').addEventListener('click', ()=> modal.remove());
+}
+
+// Refresh inbox
+document.getElementById('checkInboxBtn').addEventListener('click', fetchMessages);
+
+// Auto refresh inbox every 15s
+function startAutoRefresh() {
+  if(refreshInterval) clearInterval(refreshInterval);
+  refreshInterval = setInterval(fetchMessages, 15000);
+}
+</script>
+
+</body>
+</html>
+
